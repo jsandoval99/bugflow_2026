@@ -1,6 +1,10 @@
 {
   "name": "@bugflow-2026/source",
   "version": "0.0.0",
+  "engines": {
+    "node": "22.x",
+    "npm": "11.x"
+  },
   "license": "MIT",
   "scripts": {
     "dev": "nx run-many --target=serve --projects=api,web --parallel",
