@@ -19,6 +19,9 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Upgrade npm
+        run: npm install -g npm@11.12.0
+
       - name: Show versions
         run: |
           node -v
