@@ -2,8 +2,7 @@
   "name": "@bugflow-2026/source",
   "version": "0.0.0",
   "engines": {
-    "node": "22.x",
-    "npm": "11.x"
+    "node": "22.x"
   },
   "license": "MIT",
   "scripts": {
