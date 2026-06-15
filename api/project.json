@@ -64,6 +64,14 @@
       "options": {
         "passWithNoTests": true
       }
+    },
+
+    "seed": {
+      "executor": "nx",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register src/scripts/seed.ts",
+        "cwd": "api"
+      }
     }
   }
 }
