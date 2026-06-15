@@ -78,6 +78,21 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Verify lockfile
+        run: |
+          node -e "
+            const lock=require('./package-lock.json');
+            console.log('lockfileVersion=',lock.lockfileVersion);
+            console.log(
+              'has chokidar=',
+              !!lock.packages['node_modules/chokidar']
+            );
+            console.log(
+              'has readdirp=',
+              !!lock.packages['node_modules/readdirp']
+            );
+          "
+
   deploy-api:
     name: Deploy Railway Staging
     needs:
