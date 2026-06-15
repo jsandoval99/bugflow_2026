@@ -2,10 +2,9 @@
 FROM node:22-alpine AS builder
 
 WORKDIR /app
-COPY package*.json ./
+COPY . .
 
 RUN npm ci
-COPY . .
 RUN npx nx build api --configuration=production
 
 # ---- PRODUCTION STAGE ----
@@ -14,7 +13,7 @@ FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY package*.json ./
+COPY --from=builder /app/dist/api/package*.json ./
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist/api ./
 
