@@ -117,6 +117,11 @@ jobs:
         run: sleep 60
 
       - name: Run Seed
-        run: railway run --service ${{ secrets.RAILWAY_SERVICE_ID }} -- npm run seed
+        run: npm run seed
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          ENABLE_SEED: true
+          DB_HOST: ${{ secrets.STAGING_DB_HOST }}
+          DB_PORT: ${{ secrets.STAGING_DB_PORT }}
+          DB_USERNAME: ${{ secrets.STAGING_DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.STAGING_DB_NAME }}

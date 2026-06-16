@@ -1,12 +1,26 @@
-import { NestFactory } from '@nestjs/core';
-import { Repository } from 'typeorm';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { AppModule } from '../app/app.module';
+import 'reflect-metadata';
+import { DataSource, Repository } from 'typeorm';
 import { User } from '../modules/users/entities/user.entity';
 import { ProjectEntity } from '../modules/projects/entities/project.entity';
 import { IssueEntity } from '../modules/issues/entities/issue.entity';
 import { CommentEntity } from '../modules/comments/entities/comment.entity';
 import { UserRole, IssuePriority, IssueStatus } from '@bugflow-2026/shared-types';
+
+const dataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT ?? '5432'),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false },
+  entities: [
+    User,
+    ProjectEntity,
+    IssueEntity,
+    CommentEntity,
+  ],
+});
 
 async function findOrCreateUser(repository: Repository<User>, data: Partial<User>): Promise<User> {
   const existing = await repository.findOne({
@@ -81,30 +95,22 @@ async function bootstrap() {
     throw new Error('Seed execution disabled');
   }
 
-  const app = await NestFactory.createApplicationContext(AppModule);
+  await dataSource.initialize();
 
   try {
     console.log('🌱 Starting BugFlow seed...');
 
     const usersRepository =
-      app.get<Repository<User>>(
-        getRepositoryToken(User),
-      );
+      dataSource.getRepository(User);
 
     const projectsRepository =
-      app.get<Repository<ProjectEntity>>(
-        getRepositoryToken(ProjectEntity),
-      );
+      dataSource.getRepository(ProjectEntity);
 
     const issuesRepository =
-      app.get<Repository<IssueEntity>>(
-        getRepositoryToken(IssueEntity),
-      );
+      dataSource.getRepository(IssueEntity);
 
     const commentsRepository =
-      app.get<Repository<CommentEntity>>(
-        getRepositoryToken(CommentEntity),
-      );
+      dataSource.getRepository(CommentEntity);
 
     const admin =
       await findOrCreateUser(
@@ -268,7 +274,7 @@ async function bootstrap() {
     );
 
   } finally {
-    await app.close();
+    await dataSource.destroy();
   }
 }
 
