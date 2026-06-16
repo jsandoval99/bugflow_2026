@@ -77,8 +77,8 @@ async function findOrCreateComment(
 }
 
 async function bootstrap() {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Seed execution is disabled in production');
+  if (process.env.ENABLE_SEED !== 'true') {
+    throw new Error('Seed execution disabled');
   }
 
   const app = await NestFactory.createApplicationContext(AppModule);
