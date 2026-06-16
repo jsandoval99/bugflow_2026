@@ -105,6 +105,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          corepack enable
+          corepack prepare npm@11.12.0 --activate
+          npm ci
+
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
