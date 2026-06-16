@@ -105,8 +105,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Upgrade npm
+        run: npm install -g npm@11.12.0
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          corepack enable
+          corepack prepare npm@11.12.0 --activate
+          npm ci
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
