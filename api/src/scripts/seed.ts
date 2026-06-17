@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import 'reflect-metadata';
 import { DataSource, Repository } from 'typeorm';
 import { User } from '../modules/users/entities/user.entity';
@@ -13,7 +14,9 @@ const dataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.DB_NO_SSL === 'true'
+    ? false
+    : { rejectUnauthorized: false },
   entities: [
     User,
     ProjectEntity,
@@ -268,6 +271,71 @@ async function bootstrap() {
       'Fixed in latest build.',
       developer1.id,
     );
+
+    const projects = [
+      bugflowProject,
+      mobileProject,
+      portalProject,
+    ];
+    const priorities = [
+      IssuePriority.LOW,
+      IssuePriority.MEDIUM,
+      IssuePriority.HIGH,
+    ];
+    const statuses = [
+      IssueStatus.OPEN,
+      IssueStatus.IN_PROGRESS,
+      IssueStatus.CLOSED,
+    ];
+    const issueTemplates = [
+      'Login page validation fails',
+      'Dashboard widget not rendering',
+      'Issue status not updating',
+      'Comment notification missing',
+      'Project owner not assigned',
+      'File upload exceeds limit',
+      'Search results duplicated',
+      'Mobile layout broken',
+      'Auth0 redirect incorrect',
+      'Pagination not working',
+    ];
+    const comments = [
+      'Issue reproduced successfully.',
+      'Unable to reproduce on staging.',
+      'Needs further investigation.',
+      'Root cause identified.',
+      'Fix ready for QA.',
+      'Verified and approved.',
+    ];
+
+    for (let i = 1; i <= 100; i++) {
+      const template = issueTemplates[i % issueTemplates.length];
+      const issue = await findOrCreateIssue(
+        issuesRepository,
+        {
+          title: `${template} #${i}`,
+          description: `Mock issue generated for testing record ${i}.`,
+          status: statuses[i % statuses.length],
+          priority: priorities[i % priorities.length],
+          projectId: projects[i % projects.length].id,
+          assignee: developer1.id,
+        },
+      );
+      await findOrCreateComment(
+        commentsRepository,
+        issue.id,
+        comments[i % comments.length],
+        tester1.id,
+      );
+    }
+
+    console.log('📊 Seed summary');
+    console.table({
+      users: await usersRepository.count(),
+      projects: await projectsRepository.count(),
+      issues: await issuesRepository.count(),
+      comments: await commentsRepository.count(),
+    });
 
     console.log(
       '✅ BugFlow seed completed successfully',

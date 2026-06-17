@@ -128,13 +128,10 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Wait for deployment
-        run: sleep 60
-
       - name: Run Seed
         run: npm run seed
         env:
-          ENABLE_SEED: true
+          ENABLE_SEED: 'true'
           DB_HOST: ${{ secrets.STAGING_DB_HOST }}
           DB_PORT: ${{ secrets.STAGING_DB_PORT }}
           DB_USERNAME: ${{ secrets.STAGING_DB_USERNAME }}

@@ -13,7 +13,7 @@
     "start": "node dist/api/main.js",
     "start:prod": "npm run build && concurrently \"npm run start\" \"npm run start:web\"",
     "start:web": "nx serve web",
-    "seed": "npx ts-node api/src/scripts/seed.ts"
+    "seed": "npx ts-node -r tsconfig-paths/register api/src/scripts/seed.ts"
   },
   "private": true,
   "devDependencies": {
