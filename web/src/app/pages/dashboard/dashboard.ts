@@ -1,7 +1,6 @@
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IssuesFacade } from '@bugflow-2026/data-access';
-import { IssueStatus } from '@bugflow-2026/shared-types';
+import { DashboardFacade } from '@bugflow-2026/data-access';
 import { CardComponent } from '../../shared/ui/card/card';
 import { BadgeComponent } from '../../shared/ui/badge/badge';
 
@@ -12,39 +11,30 @@ import { BadgeComponent } from '../../shared/ui/badge/badge';
   templateUrl: './dashboard.html',
 })
 export class DashboardPage {
-  private facade = inject(IssuesFacade);
+  private facade = inject(DashboardFacade);
 
-  activities = [ 'John commented on "Login issue"', 'Maria closed "API timeout error"', 'Carlos created a new issue', ];
-  state = this.facade.issuesState;
+  activities = [
+    'John commented on "Login issue"',
+    'Maria closed "API timeout error"',
+    'Carlos created a new issue',
+  ];
+  state = this.facade.statsState;
   stats = computed(() => {
-    const issues = this.state().data;
+    const data = this.state().data;
+
+    if (!data) {
+      return [];
+    }
 
     return [
-      {
-        label: 'Open Issues',
-        value: issues.filter(i => i.status === IssueStatus.OPEN).length,
-      },
-      {
-        label: 'In Progress',
-        value: issues.filter(i => i.status === IssueStatus.IN_PROGRESS).length,
-      },
-      {
-        label: 'In Testing',
-        value: issues.filter(i => i.status === IssueStatus.IN_TEST).length,
-      },
-      {
-        label: 'Closed Issues',
-        value: issues.filter(i => i.status === IssueStatus.CLOSED).length,
-      },
+      { label: 'Open Issues', value: data.open },
+      { label: 'In Progress', value: data.inProgress },
+      { label: 'In Testing', value: data.inTest },
+      { label: 'Closed Issues', value: data.closed },
     ];
   });
   recentIssues = computed(() => {
-    return this.state()
-      .data
-      .slice(0, 5);
+    return this.state().data?.recentIssues ?? [];
   });
 
-  constructor() {
-    this.facade.loadIssuesOnce();
-  }
 }

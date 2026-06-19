@@ -17,7 +17,8 @@
     "paths": {
       "@bugflow-2026/shared-types": ["shared-types/src/index.ts"],
       "@bugflow-2026/ui": ["ui/src/index.ts"],
-      "@bugflow-2026/data-access": ["data-access/src/index.ts"]
+      "@bugflow-2026/data-access": ["data-access/src/index.ts"],
+      "@bugflow-2026/realtime": ["realtime/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

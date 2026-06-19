@@ -191,7 +191,7 @@ async function bootstrap() {
           status: IssueStatus.OPEN,
           priority: IssuePriority.HIGH,
           projectId: bugflowProject.id,
-          assignee: developer1.id,
+          assignee: { id: developer1.auth0Id, name: developer1.name },
         },
       );
 
@@ -208,7 +208,7 @@ async function bootstrap() {
           priority:
             IssuePriority.MEDIUM,
           projectId: bugflowProject.id,
-          assignee: developer1.id,
+          assignee: { id: developer1.auth0Id, name: developer1.name },
         },
       );
 
@@ -223,7 +223,7 @@ async function bootstrap() {
         priority:
           IssuePriority.HIGH,
         projectId: portalProject.id,
-        assignee: developer1.id,
+        assignee: { id: developer1.auth0Id, name: developer1.name },
       },
     );
 
@@ -240,7 +240,7 @@ async function bootstrap() {
           priority:
             IssuePriority.LOW,
           projectId: mobileProject.id,
-          assignee: developer1.id,
+          assignee: { id: developer1.auth0Id, name: developer1.name },
         },
       );
 
@@ -318,7 +318,7 @@ async function bootstrap() {
           status: statuses[i % statuses.length],
           priority: priorities[i % priorities.length],
           projectId: projects[i % projects.length].id,
-          assignee: developer1.id,
+          assignee: { id: developer1.auth0Id, name: developer1.name }
         },
       );
       await findOrCreateComment(

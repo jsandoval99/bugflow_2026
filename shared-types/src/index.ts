@@ -1,3 +1,5 @@
+export * from './lib/dashboard-stats.interface'
+
 export * from './lib/utils/forms.util';
 export * from './lib/utils/enum.utl';
 
@@ -12,3 +14,5 @@ export * from './lib/project.interface';
 
 export * from './lib/comment';
 export * from './lib/create-comment.payload';
+
+export * from './lib/pagination.interface';

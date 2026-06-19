@@ -1,3 +1,6 @@
+export * from './lib/dashboard/dashboard.facade';
+export * from './lib/dashboard/dashboard.api';
+
 export * from './lib/issues/issues.facade';
 export * from './lib/issues/issues.api';
 

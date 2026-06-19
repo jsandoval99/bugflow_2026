@@ -1,20 +1,31 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
-import { IssueStatus, IssuePriority, CreateIssuePayload, UpdateIssuePayload } from '@bugflow-2026/shared-types';
-import { IssuesApiService } from './issues.api';
-import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { switchMap, map, startWith } from 'rxjs';
+import { IssueStatus, IssuePriority, CreateIssuePayload, UpdateIssuePayload, IssueFilters, PaginatedResponse, Issue, DEFAULT_PAGE_SIZE } from '@bugflow-2026/shared-types';
+import { SocketService } from '@bugflow-2026/realtime';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { IssuesApiService } from './issues.api';
 
 const STORAGE_KEY = 'bugflow-issues-filters';
-const DEFAULT_FILTERS = {
+const DEFAULT_FILTERS: IssueFilters = {
   status: '' as IssueStatus | '',
   priority: '' as IssuePriority | '',
   search: '',
   projectId: '',
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+};
+const EMPTY_PAGE: PaginatedResponse<Issue> = {
+  data: [],
+  total: 0,
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  totalPages: 0,
 };
 
 @Injectable({ providedIn: 'root' })
 export class IssuesFacade {
   private api = inject(IssuesApiService);
+  private socketService = inject(SocketService);
   private refreshTrigger = signal(0);
   private filters = signal(this.loadInitialFilters());
   readonly filtersState = this.filters;
@@ -28,14 +39,22 @@ export class IssuesFacade {
       switchMap(({ filters }) =>
         this.api.getIssues(filters).pipe(
           map(data => ({ data, loading: false })),
-          startWith({ data: [], loading: true })
+          startWith({
+            data: EMPTY_PAGE,
+            loading: true,
+          })
         )
       )
     ),
-    { initialValue: { data: [], loading: true } }
+    { initialValue: {
+      data: EMPTY_PAGE,
+      loading: true,
+    } }
   );
 
   constructor() {
+    this.listenRealtime();
+
     effect(() => {
       sessionStorage.setItem(
         STORAGE_KEY,
@@ -44,7 +63,19 @@ export class IssuesFacade {
     });
   }
 
-  private loadInitialFilters() {
+  private listenRealtime() {
+    this.socketService.onIssueCreated(issue => {
+      console.log('Realtime create', issue);
+      this.refresh();
+    });
+
+    this.socketService.onIssueUpdated(issue => {
+      console.log('Realtime update', issue);
+      this.refresh();
+    });
+  }
+
+  private loadInitialFilters(): IssueFilters {
     const saved = sessionStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
@@ -65,21 +96,19 @@ export class IssuesFacade {
     this.refreshTrigger.update(v => v + 1);
   }
 
-  setFilters(filters: {
-    status: IssueStatus | '';
-    priority: IssuePriority | '';
-    search: string;
-    projectId: string;
-  }) {
+  setFilters(filters: IssueFilters) {
     this.filters.set(filters);
   }
 
   clearFilters() {
+    const currentPageSize = this.filters().pageSize;
     this.filters.set({
       status: '',
       priority: '',
       search: '',
       projectId: '',
+      page: 1,
+      pageSize: currentPageSize,
     });
   }
 
@@ -92,7 +121,7 @@ export class IssuesFacade {
   }
 
   loadIssuesOnce() {
-    if (this.issuesState().data.length) return;
+    if (this.issuesState().data.data.length) return;
     this.refresh();
   }
 

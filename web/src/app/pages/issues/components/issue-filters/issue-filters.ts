@@ -1,5 +1,5 @@
 import { Component, Input, WritableSignal } from '@angular/core';
-import { IssueStatus, IssuePriority, Project } from '@bugflow-2026/shared-types';
+import { IssueStatus, IssuePriority, Project, IssueFilters } from '@bugflow-2026/shared-types';
 
 @Component({
   selector: 'app-issue-filters',
@@ -14,12 +14,7 @@ export class IssueFiltersComponent {
   projects!: Project[];
 
   @Input({ required: true })
-  filters!: WritableSignal<{
-    status: IssueStatus | '';
-    priority: IssuePriority | '';
-    search: string;
-    projectId: string;
-  }>;
+  filters!: WritableSignal<IssueFilters>;
 
   statuses = Object.values(IssueStatus);
   priorities = Object.values(IssuePriority);
@@ -28,6 +23,7 @@ export class IssueFiltersComponent {
     this.filters.update(f => ({
       ...f,
       status: value ? (value as IssueStatus) : '',
+      page: 1,
     }));
   }
 
@@ -35,6 +31,7 @@ export class IssueFiltersComponent {
     this.filters.update(f => ({
       ...f,
       priority: value ? (value as IssuePriority) : '',
+      page: 1,
     }));
   }
 
@@ -42,6 +39,7 @@ export class IssueFiltersComponent {
     this.filters.update(f => ({
       ...f,
       projectId: value,
+      page: 1,
     }));
   }
 
@@ -49,16 +47,19 @@ export class IssueFiltersComponent {
     this.filters.update(f => ({
       ...f,
       search: value,
+      page: 1,
     }));
   }
-  
 
   clearFilters() {
+    const currentPageSize = this.filters().pageSize;
     this.filters.set({
       status: '',
       priority: '',
       search: '',
       projectId: '',
+      page: 1,
+      pageSize: currentPageSize,
     });
   }
 }

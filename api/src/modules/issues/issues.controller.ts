@@ -20,6 +20,7 @@ import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { FindIssuesDto } from './dto/find-issues.dto';
 
 @ApiTags('Issues')
 @ApiBearerAuth()
@@ -40,13 +41,16 @@ export class IssuesController {
   @ApiQuery({ name: 'priority', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'projectId', required: false })
-  findAll(
-    @Query('status') status?: string,
-    @Query('priority') priority?: string,
-    @Query('search') search?: string,
-    @Query('projectId') projectId?: string,
-  ) {
-    return this.issuesService.findAll({ status, priority, search, projectId });
+  @ApiQuery({ name: 'page', required: true })
+  @ApiQuery({ name: 'pageSize', required: true })
+  findAll(@Query() query: FindIssuesDto) {
+    return this.issuesService.findAll(query);
+  }
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Get dashboard stats' })
+  getStats() {
+    return this.issuesService.getStats();
   }
 
   @Get(':id')

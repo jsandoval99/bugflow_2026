@@ -141,10 +141,15 @@ export class CreateIssueModalComponent implements AfterViewChecked {
     }
 
     const rawValue = this.form.getRawValue();
+    const assignee = this.assigneeOptions()
+        .find(assignee => assignee.value === rawValue.assignee) || null;
     const value = {
       ...rawValue,
       projectId: rawValue.projectId || null,
-      assignee: rawValue.assignee || null,
+      assignee: assignee ? {
+        id: assignee.value,
+        name: assignee.label
+      } : null
     };
     const issue = this.currentIssue();
 

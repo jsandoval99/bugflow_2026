@@ -25,7 +25,19 @@ export type CreateIssuePayload = {
   description: string;
   status?: IssueStatus;
   priority?: IssuePriority;
-  assignee?: string | null;
+  assignee?: IssueAssignee | null;
   projectId?: string | null;
 };
 export type UpdateIssuePayload = Partial<CreateIssuePayload>;
+
+export interface PaginationFilters {
+  page: number;
+  pageSize: number;
+}
+
+export interface IssueFilters extends PaginationFilters {
+  status: "" | IssueStatus;
+  priority: IssuePriority | "";
+  search: string;
+  projectId: string;
+}

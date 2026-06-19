@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { IssueStatus, IssuePriority } from '@bugflow-2026/shared-types';
+import { IssueStatus, IssuePriority, IssueAssignee } from '@bugflow-2026/shared-types';
 import { ProjectEntity } from '../../projects/entities/project.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 
@@ -37,8 +37,11 @@ export class IssueEntity {
   })
   priority!: IssuePriority;
 
-  @Column({ nullable: true })
-  assignee?: string;
+  @Column({
+    type: 'jsonb',
+    nullable: true
+  })
+  assignee?: IssueAssignee;
 
   @Column({ nullable: true })
   projectId?: string | null;

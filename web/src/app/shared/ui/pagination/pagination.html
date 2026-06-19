@@ -1,0 +1,97 @@
+@if (totalPages() > 1) {
+  <nav
+    class="flex flex-col gap-4 mt-8"
+    aria-label="Pagination"
+  >
+    <div
+      class="flex items-center justify-between flex-wrap gap-4"
+    >
+      <p class="text-sm text-gray-500">
+        Showing {{ startItem() }} - {{ endItem() }}
+        of {{ total() }} results
+      </p>
+
+      <div class="flex items-center gap-2">
+        <label
+          for="page-size"
+          class="text-sm"
+        >
+          Per page
+        </label>
+        <select
+          id="page-size"
+          class="border rounded-lg px-2 py-1"
+          [value]="pageSize()"
+          (change)="changePageSize($any($event.target).value)"
+        >
+          @for (size of pageSizeOptions(); track size) {
+            <option
+              [value]="size"
+              [selected]="pageSize() === size"
+            >
+              {{ size }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div
+      class="flex justify-center items-center gap-2 flex-wrap"
+    >
+      <button
+        type="button"
+        class="px-3 py-2 border rounded-lg"
+        [disabled]="page() === 1"
+        (click)="previous()"
+      >
+        Previous
+      </button>
+
+      @if (visiblePages()[0] > 1) {
+        <button
+          type="button"
+          class="px-3 py-2 border rounded-lg transition-colors"
+          (click)="goToPage(1)"
+        >1</button>
+        @if (visiblePages()[0] > 2) {
+          <span aria-hidden="true">...</span>
+        }
+      }
+
+      @for (p of visiblePages(); track p) {
+        <button
+          type="button"
+          class="px-3 py-2 border rounded-lg transition-colors"
+          [class.border-blue-600]="p === page()"
+          [class.text-blue-600]="p === page()"
+          [class.font-semibold]="p === page()"
+          [class.bg-blue-50]="p === page()"
+          [attr.aria-current]="p === page() ? 'page' : null"
+          [attr.aria-label]="'Go to page ' + p"
+          (click)="goToPage(p)"
+        >{{ p }}</button>
+      }
+
+      @if (visiblePages()[visiblePages().length - 1] < totalPages()) {
+        @if (visiblePages()[visiblePages().length - 1] < totalPages() - 1) {
+          <span aria-hidden="true">...</span>
+        }
+        <button
+          type="button"
+          class="px-3 py-2 border rounded-lg transition-colors"
+          (click)="goToPage(totalPages())"
+        >{{ totalPages() }}</button>
+      }
+
+      <button
+        type="button"
+        class="px-3 py-2 border rounded-lg"
+        [disabled]="page() === totalPages()"
+        (click)="next()"
+      >
+        Next
+      </button>
+    </div>
+  </nav>
+}

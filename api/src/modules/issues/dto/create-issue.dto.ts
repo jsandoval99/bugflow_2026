@@ -1,11 +1,8 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IssueStatus, IssuePriority } from '@bugflow-2026/shared-types';
+import { AssigneeDto } from './assignee.dto';
+import { Type } from 'class-transformer';
 
 export class CreateIssueDto {
   @ApiProperty({ example: 'Login button is broken' })
@@ -26,10 +23,13 @@ export class CreateIssueDto {
   @IsEnum(IssuePriority)
   priority!: IssuePriority;
 
-  @ApiPropertyOptional({ example: 'auth0|69f2562a83cf251989410cc7' })
+  @ApiPropertyOptional({
+    type: AssigneeDto,
+  })
   @IsOptional()
-  @IsString()
-  assignee?: string;
+  @ValidateNested()
+  @Type(() => AssigneeDto)
+  assignee?: AssigneeDto;
 
   @ApiPropertyOptional({ example: 'project-123' })
   @IsOptional()

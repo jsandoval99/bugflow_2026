@@ -13,6 +13,7 @@ import { NotificationsModule } from '../modules/notifications/notifications.modu
 import { DatabaseModule } from '../modules/database/database.module';
 import { CommonModule } from '../common/common.module';
 import { JobsModule } from '../modules/jobs/jobs.module';
+import { RealtimeModule } from '../modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { JobsModule } from '../modules/jobs/jobs.module';
     DatabaseModule,
     CommonModule,
     JobsModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
