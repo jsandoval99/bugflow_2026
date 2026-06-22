@@ -19,4 +19,16 @@ export class RealtimeService {
   issueDeleted(issue: Issue) {
     this.issuesGateway.emitIssueDeleted(issue);
   }
+
+  commentCreated(issueId: string) {
+    this.issuesGateway.emitCommentCreated(issueId);
+  }
+
+  commentUpdated(issueId: string) {
+    this.issuesGateway.emitCommentUpdated(issueId);
+  }
+
+  commentDeleted(issueId: string) {
+    this.issuesGateway.emitCommentDeleted(issueId);
+  }
 }

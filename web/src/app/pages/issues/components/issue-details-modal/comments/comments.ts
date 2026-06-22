@@ -1,12 +1,7 @@
-import {
-  Component,
-  inject,
-  input,
-  signal,
-  effect,
-} from '@angular/core';
+import { Component, inject, input, signal, effect, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommentsFacade, UsersFacade } from '@bugflow-2026/data-access';
+import { SocketService } from '@bugflow-2026/realtime';
 import { Comment } from '@bugflow-2026/shared-types';
 
 @Component({
@@ -15,9 +10,10 @@ import { Comment } from '@bugflow-2026/shared-types';
   imports: [ReactiveFormsModule],
   templateUrl: './comments.html',
 })
-export class CommentsComponent {
+export class CommentsComponent implements OnDestroy {
   private fb = inject(FormBuilder).nonNullable;
   private usersFacade = inject(UsersFacade);
+  private socketService = inject(SocketService);
   readonly facade = inject(CommentsFacade);
 
   currentUser = this.usersFacade.me;
@@ -33,10 +29,32 @@ export class CommentsComponent {
 
   constructor() {
     effect(() => {
-      this.facade.setIssue(
-        this.issueId()
-      );
+      this.facade.setIssue(this.issueId());
+      this.socketService.joinIssue(this.issueId());
     });
+
+    this.socketService.onCommentCreated(issueId => {
+      if (issueId === this.issueId()) {
+        this.facade.refresh();
+      }
+    });
+    this.socketService.onCommentUpdated(issueId => {
+      if (issueId === this.issueId()) {
+        this.facade.refresh();
+      }
+    });
+    this.socketService.onCommentDeleted(issueId => {
+      if (issueId === this.issueId()) {
+        this.facade.refresh();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.socketService.leaveIssue(this.issueId());
+    this.socketService.offCommentCreated();
+    this.socketService.offCommentUpdated();
+    this.socketService.offCommentDeleted();
   }
 
   formatDate(date: string) {
@@ -71,9 +89,7 @@ export class CommentsComponent {
         this.issueId(),
         commentId,
       )
-      .subscribe(() => {
-        this.facade.refresh();
-      });
+      .subscribe();
   }
 
   cancelEdit() {
@@ -107,7 +123,6 @@ export class CommentsComponent {
         this.loading.set(false);
         this.form.reset();
         this.editingCommentId.set(null);
-        this.facade.refresh();
       },
       error: () => {
         this.loading.set(false);

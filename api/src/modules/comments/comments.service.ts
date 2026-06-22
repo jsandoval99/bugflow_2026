@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
+import { RealtimeService } from '../realtime/services/realtime.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentEntity } from './entities/comment.entity';
@@ -18,6 +19,8 @@ export class CommentsService {
 
     @InjectRepository(User)
     private usersRepo: Repository<User>,
+
+    private realtimeService: RealtimeService,
   ) {}
 
   async create(
@@ -41,7 +44,9 @@ export class CommentsService {
       authorId: userId,
     });
 
-    return this.repo.save(comment);
+    const savedComment = await this.repo.save(comment);
+    this.realtimeService.commentCreated(issueId);
+    return savedComment;
   }
 
   async findAll(issueId: string) {
@@ -100,7 +105,9 @@ export class CommentsService {
     }
 
     comment.content = dto.content;
-    return this.repo.save(comment);
+    const updatedComment = await this.repo.save(comment);
+    this.realtimeService.commentUpdated(comment.issueId);
+    return updatedComment;
   }
 
   async remove(commentId: string, userId: string) {
@@ -116,6 +123,7 @@ export class CommentsService {
     }
 
     await this.repo.remove(comment);
+    this.realtimeService.commentDeleted(comment.issueId);
     return { success: true };
   }
 }

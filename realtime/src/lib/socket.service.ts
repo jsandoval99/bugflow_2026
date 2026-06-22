@@ -16,29 +16,59 @@ export class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('Socket connected:', this.socket.id);
       this.joinIssues();
     });
-  }
-
-  joinIssues() {
-    this.socket.emit('join-issues');
   }
 
   joinProject(projectId: string) {
     this.socket.emit('join-project', projectId);
   }
 
-  onIssueUpdated(callback: (issue: Issue) => void) {
-    this.socket.on('issue-updated', callback);
+  joinIssues() {
+    this.socket.emit('join-issues');
   }
 
   onIssueCreated(callback: (issue: Issue) => void) {
     this.socket.on('issue-created', callback);
   }
-
+  onIssueUpdated(callback: (issue: Issue) => void) {
+    this.socket.on('issue-updated', callback);
+  }
   onIssueDeleted(callback: (issue: Issue) => void) {
     this.socket.on('issue-deleted', callback);
+  }
+
+  joinIssue(issueId: string) {
+    if (!this.socket?.connected) {
+      return;
+    }
+    this.socket.emit('join-issue', issueId);
+  }
+  leaveIssue(issueId: string) {
+    if (!this.socket?.connected) {
+      return;
+    }
+    this.socket.emit('leave-issue', issueId);
+  }
+
+  onCommentCreated(callback: (issueId: string) => void) {
+    this.socket.on('comment-created', callback);
+  }
+  onCommentUpdated(callback: (issueId: string) => void) {
+    this.socket.on('comment-updated', callback);
+  }
+  onCommentDeleted(callback: (issueId: string) => void) {
+    this.socket.on('comment-deleted', callback);
+  }
+
+  offCommentCreated() {
+    this.socket.off('comment-created');
+  }
+  offCommentUpdated() {
+    this.socket.off('comment-updated');
+  }
+  offCommentDeleted() {
+    this.socket.off('comment-deleted');
   }
 
   disconnect() {

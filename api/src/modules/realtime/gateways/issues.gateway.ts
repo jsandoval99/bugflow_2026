@@ -19,7 +19,6 @@ export class IssuesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleJoinIssues(
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('JOIN ISSUES', client.id);
     client.join('issues-all');
   }
 
@@ -31,21 +30,28 @@ export class IssuesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.join(`project-${projectId}`);
   }
 
+  @SubscribeMessage('join-issue')
+  handleJoinIssue(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() issueId: string,
+  ) {
+    client.join(`issue-${issueId}`);
+  }
+
+  @SubscribeMessage('leave-issue')
+  handleLeaveIssue(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() issueId: string,
+  ) {
+    client.leave(`issue-${issueId}`);
+  }
+
   handleConnection(client: Socket) {
     console.log('CONNECTED', client.id);
   }
 
   handleDisconnect(client: Socket) {
     console.log('DISCONNECTED', client.id);
-  }
-
-  emitIssueUpdated(issue: Issue) {
-    this.server.to('issues-all').emit('issue-updated', issue);
-    if (issue.projectId) {
-      this.server
-        .to(`project-${issue.projectId}`)
-        .emit('issue-updated', issue);
-    }
   }
 
   emitIssueCreated(issue: Issue) {
@@ -57,6 +63,15 @@ export class IssuesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  emitIssueUpdated(issue: Issue) {
+    this.server.to('issues-all').emit('issue-updated', issue);
+    if (issue.projectId) {
+      this.server
+        .to(`project-${issue.projectId}`)
+        .emit('issue-updated', issue);
+    }
+  }
+
   emitIssueDeleted(issue: Issue) {
     this.server.to('issues-all').emit('issue-deleted', issue.id);
     if (issue.projectId) {
@@ -64,5 +79,17 @@ export class IssuesGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .to(`project-${issue.projectId}`)
         .emit('issue-deleted', issue.id);
     }
+  }
+
+  emitCommentCreated(issueId: string) {
+    this.server.to(`issue-${issueId}`).emit('comment-created', issueId);
+  }
+
+  emitCommentUpdated(issueId: string) {
+    this.server.to(`issue-${issueId}`).emit('comment-updated', issueId);
+  }
+
+  emitCommentDeleted(issueId: string) {
+    this.server.to(`issue-${issueId}`).emit('comment-deleted', issueId);
   }
 }

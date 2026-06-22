@@ -48,7 +48,7 @@ export class CommentsFacade {
     },
   );
 
-  setIssue(issueId: string) {
+  setIssue(issueId: string | null) {
     this.issueId.set(issueId);
   }
 

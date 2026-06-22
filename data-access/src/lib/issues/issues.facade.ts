@@ -64,13 +64,11 @@ export class IssuesFacade {
   }
 
   private listenRealtime() {
-    this.socketService.onIssueCreated(issue => {
-      console.log('Realtime create', issue);
+    this.socketService.onIssueCreated(() => {
       this.refresh();
     });
 
-    this.socketService.onIssueUpdated(issue => {
-      console.log('Realtime update', issue);
+    this.socketService.onIssueUpdated(() => {
       this.refresh();
     });
   }

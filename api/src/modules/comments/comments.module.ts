@@ -6,6 +6,7 @@ import { CommentEntity } from './entities/comment.entity';
 import { IssueEntity } from '../issues/entities/issue.entity';
 import { AuthModule } from '../auth/auth.module';
 import { User } from '../users/entities/user.entity';
+import { RealtimeModule } from '../realtime/realtime.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { User } from '../users/entities/user.entity';
       IssueEntity,
       User,
     ]),
+    RealtimeModule,
     AuthModule,
   ],
   controllers: [CommentsController],
