@@ -19,37 +19,15 @@ export class RolesGuard implements CanActivate {
       ]
     );
 
+    const request = context.switchToHttp().getRequest();
+    const user: RequestUser = request.user;
+    const dbUser = await this.usersService.findOrCreateFromAuth0(user);
+    request.dbUser = dbUser;
+
     if (!requiredRoles?.length) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user: RequestUser = request.user;
-
-    const dbUser = await this.usersService.findOrCreateFromAuth0(user);
-
-    request.dbUser = dbUser;
-
     return requiredRoles.includes(dbUser.role);
   }
 }
-
-// @Injectable()
-// export class RolesGuard implements CanActivate {
-//   constructor(private usersService: UsersService) {}
-
-//   async canActivate(context: ExecutionContext): Promise<boolean> {
-//     const request = context.switchToHttp().getRequest();
-//     const user: RequestUser = request.user;
-
-//     const dbUser = await this.usersService.findOrCreateFromAuth0(user);
-
-//     request.dbUser = dbUser;
-
-//     return user['https://bugflow-api/roles']?.some(role =>
-//       role === 'admin'
-//       || role === 'developer'
-//       || role === 'tester'
-//     ) || false;
-//   }
-// }

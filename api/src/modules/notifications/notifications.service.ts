@@ -1,26 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NotificationEntity } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { toNotification } from './entities/notifications.mapper';
+import { BugFlowNotification } from '@bugflow-2026/shared-types';
 
 @Injectable()
 export class NotificationsService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectRepository(NotificationEntity)
+    private readonly repo: Repository<NotificationEntity>,
+  ) {}
+
+  async create(dto: CreateNotificationDto) {
+    const notification = this.repo.create({
+      ...dto,
+      read: false,
+    });
+
+    return await this.repo.save(notification);
   }
 
-  findAll() {
-    return `This action returns all notifications`;
+  async findAll(userId: string): Promise<BugFlowNotification[]> {
+    const notifications = await this.repo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+    return notifications.map(toNotification);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
+  async findOne(id: string, userId: string) {
+    const notification = await this.repo.findOne({
+      where: { id, userId },
+    });
+
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    return notification;
   }
 
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
+  async markAsRead(id: string, userId: string) {
+    const notification = await this.findOne(id, userId);
+
+    notification.read = true;
+
+    return this.repo.save(notification);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+  async markAllAsRead(userId: string) {
+    await this.repo.update(
+      { userId, read: false },
+      { read: true },
+    );
+
+    return { success: true };
+  }
+
+  async removeAll(userId: string) {
+    await this.repo.delete({ userId });
+
+    return { success: true };
   }
 }

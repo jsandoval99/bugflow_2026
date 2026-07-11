@@ -19,6 +19,20 @@
               [status]="currentIssue.status"
               size="sm"
             />
+            <button
+              type="button"
+              (click)="observe()"
+              [disabled]="watchLoading()"
+              class="border rounded-full px-2 py-1 font-medium text-xs hover:bg-gray-100"
+              aria-label="Click to observe issue"
+              title="Click to observe issue"
+            >
+              @if (isWatching()) {
+                ◡ Watching
+              } @else {
+                👁 Observe
+              }
+            </button>
           </div>
           <div
             class="flex flex-wrap items-center gap-3 text-sm text-gray-500"

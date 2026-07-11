@@ -1,19 +1,7 @@
-import {
-  Injectable,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import {
-  map,
-  startWith,
-  switchMap,
-} from 'rxjs';
-import {
-  CreateProjectPayload,
-  UpdateProjectPayload,
-} from '@bugflow-2026/shared-types';
+import { map, startWith, switchMap } from 'rxjs';
+import { CreateProjectPayload, UpdateProjectPayload } from '@bugflow-2026/shared-types';
 import { ProjectsApiService } from './projects.api';
 
 @Injectable({ providedIn: 'root' })

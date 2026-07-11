@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { User } from '@bugflow-2026/shared-types';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -47,8 +48,13 @@ export class IssuesController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update issue' })
   @ApiParam({ name: 'id', description: 'Issue ID' })
-  update(@Param('id') id: string, @Body() updateIssueDto: UpdateIssueDto) {
-    return this.issuesService.update(id, updateIssueDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateIssueDto: UpdateIssueDto,
+    @Req() req: any,
+  ) {
+    const userdb: User = req.user.dbUser;
+    return this.issuesService.update(id, updateIssueDto, userdb);
   }
 
   @Delete(':id')

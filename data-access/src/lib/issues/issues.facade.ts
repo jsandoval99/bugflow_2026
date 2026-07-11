@@ -53,6 +53,7 @@ export class IssuesFacade {
   );
 
   constructor() {
+    this.socketService.joinIssues();
     this.listenRealtime();
 
     effect(() => {
@@ -121,6 +122,10 @@ export class IssuesFacade {
   loadIssuesOnce() {
     if (this.issuesState().data.data.length) return;
     this.refresh();
+  }
+
+  getIssue(id: string) {
+    return this.api.getIssue(id);
   }
 
 }

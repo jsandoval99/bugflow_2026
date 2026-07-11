@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UserRole } from '@bugflow-2026/shared-types';
 import { Auth0Service } from '../auth/auth0.service';
 import { RequestUser } from '../../interfaces/auth/request-user.interface';
@@ -58,7 +58,18 @@ export class UsersService {
   }
 
   async findAssignableUsers() {
-    const users = await this.auth0Service.getUsersFromAuth0();
-    return users;
+    const auth0Users = await this.auth0Service.getUsersFromAuth0();
+    const auth0Ids = auth0Users.map((u) => u.auth0Id);
+    const dbUsers = await this.repo.find({ where: { auth0Id: In(auth0Ids) } });
+    const usersByAuth0Id = new Map(dbUsers.map((u) => [u.auth0Id, u]));
+
+    return auth0Users.map((user) => {
+      const dbUser = usersByAuth0Id.get(user.auth0Id);
+
+      return {
+        ...user,
+        id: dbUser?.id,
+      };
+    });
   }
 }

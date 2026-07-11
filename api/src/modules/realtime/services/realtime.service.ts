@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { Issue, BugFlowNotification } from '@bugflow-2026/shared-types';
 import { IssuesGateway } from '../gateways/issues.gateway';
-import { Issue } from '@bugflow-2026/shared-types';
+import { NotificationsGateway } from '../gateways/notifications.gateway';
 
 @Injectable()
 export class RealtimeService {
   constructor(
     private readonly issuesGateway: IssuesGateway,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   issueCreated(issue: Issue) {
@@ -31,4 +33,9 @@ export class RealtimeService {
   commentDeleted(issueId: string) {
     this.issuesGateway.emitCommentDeleted(issueId);
   }
+
+  notificationCreated(userId: string, notification: BugFlowNotification) {
+    this.notificationsGateway.emitNotificationCreated(userId, notification);
+  }
+
 }

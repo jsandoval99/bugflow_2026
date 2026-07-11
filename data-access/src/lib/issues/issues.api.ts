@@ -31,6 +31,12 @@ export class IssuesApiService {
     });
   }
 
+  getIssue(id: string): Observable<Issue> {
+    return this.http.get<Issue>(
+      `${this.baseUrl}/${id}`,
+    );
+  }
+
   createIssue(data: CreateIssuePayload) {
     return this.http.post(this.baseUrl, data);
   }

@@ -5,6 +5,8 @@ import { User } from '../modules/users/entities/user.entity';
 import { ProjectEntity } from '../modules/projects/entities/project.entity';
 import { IssueEntity } from '../modules/issues/entities/issue.entity';
 import { CommentEntity } from '../modules/comments/entities/comment.entity';
+import { IssueWatcherEntity } from '../modules/issues/entities/issue-watcher.entity';
+import { NotificationEntity } from '../modules/notifications/entities/notification.entity';
 import { UserRole, IssuePriority, IssueStatus } from '@bugflow-2026/shared-types';
 
 const dataSource = new DataSource({
@@ -21,7 +23,9 @@ const dataSource = new DataSource({
     User,
     ProjectEntity,
     IssueEntity,
+    IssueWatcherEntity,
     CommentEntity,
+    NotificationEntity,
   ],
 });
 
@@ -191,7 +195,7 @@ async function bootstrap() {
           status: IssueStatus.OPEN,
           priority: IssuePriority.HIGH,
           projectId: bugflowProject.id,
-          assignee: { id: developer1.auth0Id, name: developer1.name },
+          assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name },
         },
       );
 
@@ -208,7 +212,7 @@ async function bootstrap() {
           priority:
             IssuePriority.MEDIUM,
           projectId: bugflowProject.id,
-          assignee: { id: developer1.auth0Id, name: developer1.name },
+          assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name },
         },
       );
 
@@ -223,7 +227,7 @@ async function bootstrap() {
         priority:
           IssuePriority.HIGH,
         projectId: portalProject.id,
-        assignee: { id: developer1.auth0Id, name: developer1.name },
+        assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name },
       },
     );
 
@@ -240,7 +244,7 @@ async function bootstrap() {
           priority:
             IssuePriority.LOW,
           projectId: mobileProject.id,
-          assignee: { id: developer1.auth0Id, name: developer1.name },
+          assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name },
         },
       );
 
@@ -318,7 +322,7 @@ async function bootstrap() {
           status: statuses[i % statuses.length],
           priority: priorities[i % priorities.length],
           projectId: projects[i % projects.length].id,
-          assignee: { id: developer1.auth0Id, name: developer1.name }
+          assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name }
         },
       );
       await findOrCreateComment(

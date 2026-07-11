@@ -1,45 +1,45 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Param, Patch, Delete, UseGuards, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { User } from '@bugflow-2026/shared-types';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
 
+@ApiTags('Notifications')
+@ApiBearerAuth()
 @Controller('notifications')
+@UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
-
-  @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
-  }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   @Get()
-  findAll() {
-    return this.notificationsService.findAll();
+  findAll(@Req() req: any) {
+    const userdb: User = req.user.dbUser;
+    return this.notificationsService.findAll(userdb.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const userdb: User = req.user.dbUser;
+    return this.notificationsService.findOne(id, userdb.id);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateNotificationDto: UpdateNotificationDto,
-  ) {
-    return this.notificationsService.update(+id, updateNotificationDto);
+  @Patch(':id/read')
+  markAsRead(@Param('id') id: string, @Req() req: any) {
+    const userdb: User = req.user.dbUser;
+    return this.notificationsService.markAsRead(id, userdb.id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notificationsService.remove(+id);
+  @Patch('read-all')
+  markAll(@Req() req: any) {
+    const userdb: User = req.user.dbUser;
+    return this.notificationsService.markAllAsRead(userdb.id);
+  }
+
+  @Delete()
+  clear(@Req() req: any) {
+    const userdb: User = req.user.dbUser;
+    return this.notificationsService.removeAll(userdb.id);
   }
 }

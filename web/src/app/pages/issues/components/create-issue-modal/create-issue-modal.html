@@ -20,7 +20,11 @@
         id="modal-title"
         class="text-xl font-bold"
       >
-        Create Issue
+        @if (isEditMode()) {
+          Edit Issue
+        } @else {
+          Create Issue
+        }
       </h2>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">

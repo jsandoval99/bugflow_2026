@@ -5,6 +5,7 @@ import { Project } from './project.interface';
 export interface IssueAssignee {
   id: string;
   name: string;
+  dbId: string;
 }
 
 export interface Issue {

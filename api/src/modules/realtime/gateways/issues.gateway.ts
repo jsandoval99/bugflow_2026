@@ -30,6 +30,14 @@ export class IssuesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.join(`project-${projectId}`);
   }
 
+  @SubscribeMessage('leave-project')
+  handleLeaveProject(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() projectId: string,
+  ) {
+    client.leave(`project-${projectId}`);
+  }
+
   @SubscribeMessage('join-issue')
   handleJoinIssue(
     @ConnectedSocket() client: Socket,

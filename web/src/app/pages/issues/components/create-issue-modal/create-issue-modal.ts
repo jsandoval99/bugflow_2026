@@ -53,6 +53,7 @@ export class CreateIssueModalComponent implements AfterViewChecked {
     this.users().map(u => ({
       label: u.name,
       value: u.auth0Id,
+      dbId: u.id,
     }))
   );
   canAssign = computed(() => {
@@ -148,6 +149,7 @@ export class CreateIssueModalComponent implements AfterViewChecked {
       projectId: rawValue.projectId || null,
       assignee: assignee ? {
         id: assignee.value,
+        dbId: assignee.dbId,
         name: assignee.label
       } : null
     };

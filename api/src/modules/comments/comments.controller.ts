@@ -4,21 +4,22 @@ import {
   Post,
   Body,
   Param,
-  Req,
   UseGuards,
   Patch,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { User } from '@bugflow-2026/shared-types';
 
 @ApiTags('Comments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('issues/:issueId/comments')
+@UseGuards(JwtAuthGuard)
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
@@ -28,11 +29,9 @@ export class CommentsController {
     @Body() dto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.commentsService.create(
-      issueId,
-      dto,
-      req.user.sub,
-    );
+    const auth0Id = req.user.sub;
+    const userdb: User = req.user.dbUser;
+    return this.commentsService.create(issueId, dto, auth0Id, userdb);
   }
 
   @Get()
@@ -48,11 +47,9 @@ export class CommentsController {
     @Body() dto: UpdateCommentDto,
     @Req() req: any,
   ) {
-    return this.commentsService.update(
-      commentId,
-      dto,
-      req.user.sub,
-    );
+    const auth0Id = req.user.sub;
+    const userdb: User = req.user.dbUser;
+    return this.commentsService.update(commentId, dto, auth0Id, userdb);
   }
 
   @Delete(':commentId')
@@ -60,9 +57,8 @@ export class CommentsController {
     @Param('commentId') commentId: string,
     @Req() req: any,
   ) {
-    return this.commentsService.remove(
-      commentId,
-      req.user.sub,
-    );
+    const auth0Id = req.user.sub;
+    const userdb: User = req.user.dbUser;
+    return this.commentsService.remove(commentId, auth0Id, userdb);
   }
 }

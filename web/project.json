@@ -14,7 +14,11 @@
         "main": "web/src/main.ts",
         "polyfills": [],
         "tsConfig": "web/tsconfig.app.json",
-        "assets": ["web/src/favicon.ico", "web/src/assets"],
+        "assets": [
+          "web/src/assets/favicon.ico",
+          "web/src/assets/bugflow.png",
+          "web/src/assets"
+        ],
         "styles": ["web/src/styles.scss"],
         "scripts": []
       },

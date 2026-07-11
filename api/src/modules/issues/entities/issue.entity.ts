@@ -1,16 +1,8 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { IssueStatus, IssuePriority, IssueAssignee } from '@bugflow-2026/shared-types';
 import { ProjectEntity } from '../../projects/entities/project.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
+import { IssueWatcherEntity } from './issue-watcher.entity';
 
 @Entity('issues')
 export class IssueEntity {
@@ -62,6 +54,15 @@ export class IssueEntity {
     comment => comment.issue,
   )
   comments!: CommentEntity[];
+
+  @OneToMany(
+    () => IssueWatcherEntity,
+    watcher => watcher.issue,
+  )
+  watchers!: IssueWatcherEntity[];
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  statusChangedAt!: Date;
 
   @CreateDateColumn()
   createdAt!: Date;

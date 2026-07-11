@@ -10,6 +10,7 @@ import { CreateIssueModalComponent } from './components/create-issue-modal/creat
 import { ContextMenuComponent } from '../../shared/ui/context-menu/context-menu';
 import { IssueDetailsModalComponent } from './components/issue-details-modal/issue-details-modal';
 import { PaginationComponent } from '../../shared/ui/pagination/pagination';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-issues',
@@ -37,10 +38,24 @@ export class IssuesPage {
   private router = inject(Router);
   private usersFacade = inject(UsersFacade);
   private defaultPageSize = DEFAULT_PAGE_SIZE;
+  private showIssue(issue: Issue) {
+    this.detailsModal.open(issue);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { issueId: null },
+      queryParamsHandling: 'merge',
+    });
+  }
+  private openIssueFromId(issueId: string) {
+    this.facade
+      .getIssue(issueId)
+      .subscribe(issue => this.showIssue(issue));
+  }
 
   readonly projectsFacade = inject(ProjectsFacade);
   readonly facade = inject(IssuesFacade);
   readonly pageSizes = PAGE_SIZE_OPTIONS;
+  readonly queryParams = toSignal(this.route.queryParamMap);
   readonly initFromQueryParams = (() => {
     const params = this.route.snapshot.queryParams;
     const hasQueryParams = Object.keys(params).length > 0;
@@ -82,6 +97,12 @@ export class IssuesPage {
       queryParamsHandling: 'merge',
     });
   });
+  readonly openIssueFromQuery = effect(() => {
+    const params = this.queryParams();
+    const issueId = params?.get('issueId');
+    if (!issueId) { return; }
+    this.openIssueFromId(issueId);
+  });
 
   currentUser = this.usersFacade.me;
   canAssign = computed(() => {
@@ -94,7 +115,7 @@ export class IssuesPage {
   }
 
   openDetails(issue: Issue) {
-    this.detailsModal.open(issue);
+    this.showIssue(issue);
   }
 
   openEditModal(issue: Issue) {
@@ -111,9 +132,9 @@ export class IssuesPage {
 
     if (!user) return;
     if (!confirm(`Assign "${issue.title}" to you?`)) return;
-    
+
     this.facade
-      .updateIssue(issue.id, { assignee: { id: user.auth0Id, name: user.name } })
+      .updateIssue(issue.id, { assignee: { id: user.auth0Id, name: user.name, dbId: user.id } })
       .subscribe(() => {
         this.facade.refresh();
         this.projectsFacade.refresh();
@@ -133,7 +154,7 @@ export class IssuesPage {
       },
     ];
 
-    if (this.canAssign() && issue.assignee !== this.currentUser()?.auth0Id) {
+    if (this.canAssign() && issue.assignee?.id !== this.currentUser()?.auth0Id) {
       items.splice(1, 0, {
         label: 'Assign to me',
         action: () => this.assignToMe(issue),

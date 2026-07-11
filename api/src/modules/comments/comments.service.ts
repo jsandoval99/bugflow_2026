@@ -6,46 +6,46 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { CommentEntity } from './entities/comment.entity';
 import { IssueEntity } from '../issues/entities/issue.entity';
-import { User } from '../users/entities/user.entity';
+import { User as UserEntity } from '../users/entities/user.entity';
+import { NotificationDispatcherService } from '../notifications/services/notification-dispatcher.service';
+import { NotificationType, User } from '@bugflow-2026/shared-types';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(CommentEntity)
     private repo: Repository<CommentEntity>,
-
     @InjectRepository(IssueEntity)
     private issuesRepo: Repository<IssueEntity>,
-
-    @InjectRepository(User)
-    private usersRepo: Repository<User>,
-
+    @InjectRepository(UserEntity)
+    private usersRepo: Repository<UserEntity>,
     private realtimeService: RealtimeService,
+    private readonly notificationDispatcherService: NotificationDispatcherService,
   ) {}
 
   async create(
     issueId: string,
     dto: CreateCommentDto,
-    userId: string,
+    authorId: string,
+    user: User,
   ) {
-    const issue = await this.issuesRepo.findOneBy({
-      id: issueId,
-    });
+    const content = dto.content;
+    const issue = await this.issuesRepo.findOneBy({ id: issueId });
 
     if (!issue) {
-      throw new NotFoundException(
-        'Issue not found'
-      );
+      throw new NotFoundException('Issue not found');
     }
 
-    const comment = this.repo.create({
-      content: dto.content,
-      issueId,
-      authorId: userId,
-    });
-
+    const comment = this.repo.create({ content, issueId, authorId });
     const savedComment = await this.repo.save(comment);
+
+    await this.notificationDispatcherService.notifyCommentAdded(
+      issue,
+      [user.id],
+      user.name || user.email
+    );
     this.realtimeService.commentCreated(issueId);
+
     return savedComment;
   }
 
@@ -90,39 +90,54 @@ export class CommentsService {
     return comment.content;
   }
 
-  async update(
-    commentId: string,
-    dto: UpdateCommentDto,
-    userId: string,
-  ) {
+  async update(commentId: string, dto: UpdateCommentDto, authorId: string, user: User) {
     const comment = await this.repo.findOne({ where: { id: commentId } });
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-    if (comment.authorId !== userId) {
+    const issue = await this.issuesRepo.findOneBy({ id: comment.issueId });
+    if (!issue) {
+      throw new NotFoundException('Issue not found');
+    }
+    if (comment.authorId !== authorId) {
       throw new ForbiddenException('You can only edit your own comments');
     }
 
     comment.content = dto.content;
     const updatedComment = await this.repo.save(comment);
+
+    await this.notificationDispatcherService.notifyWatchers(
+      issue,
+      NotificationType.COMMENT_EDITED,
+      `${user.name || user.email} updated a comment to "${issue.title}"`
+    );
     this.realtimeService.commentUpdated(comment.issueId);
     return updatedComment;
   }
 
-  async remove(commentId: string, userId: string) {
-    const comment = await this.repo.findOne({
-      where: { id: commentId },
-    });
+  async remove(commentId: string, authorId: string, user: User) {
+    const comment = await this.repo.findOne({ where: { id: commentId } });
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-    if (comment.authorId !== userId) {
+    const issue = await this.issuesRepo.findOneBy({ id: comment.issueId });
+    if (!issue) {
+      throw new NotFoundException('Issue not found');
+    }
+    if (comment.authorId !== authorId) {
       throw new ForbiddenException('You can only delete your own comments');
     }
 
     await this.repo.remove(comment);
+
+    await this.notificationDispatcherService.notifyWatchers(
+      issue,
+      NotificationType.COMMENT_DELETED,
+      `${user.name || user.email} removed a comment to "${issue.title}"`
+    );
+
     this.realtimeService.commentDeleted(comment.issueId);
     return { success: true };
   }

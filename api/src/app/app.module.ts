@@ -14,6 +14,7 @@ import { DatabaseModule } from '../modules/database/database.module';
 import { CommonModule } from '../common/common.module';
 import { JobsModule } from '../modules/jobs/jobs.module';
 import { RealtimeModule } from '../modules/realtime/realtime.module';
+import { AiModule } from '../modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RealtimeModule } from '../modules/realtime/realtime.module';
     CommonModule,
     JobsModule,
     RealtimeModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
