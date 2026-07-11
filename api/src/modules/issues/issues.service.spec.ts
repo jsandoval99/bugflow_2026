@@ -6,6 +6,9 @@ import { IssuesService } from './issues.service';
 import { IssueEntity } from './entities/issue.entity';
 import { ProjectEntity } from '../projects/entities/project.entity';
 import { Auth0Service } from '../auth/auth0.service';
+import { RealtimeService } from '../realtime/services/realtime.service';
+import { IssueWatchersService } from './issue-watchers.service';
+import { NotificationDispatcherService } from '../notifications/services/notification-dispatcher.service';
 
 describe('IssuesService', () => {
   let service: IssuesService;
@@ -31,6 +34,28 @@ describe('IssuesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IssuesService,
+        {
+          provide: RealtimeService,
+          useValue: {
+            emitToUser: jest.fn(),
+            emitToProject: jest.fn(),
+            emit: jest.fn(),
+          },
+        },
+        {
+          provide: NotificationDispatcherService,
+          useValue: {
+            notifyAssignee: jest.fn(),
+            notifyIssueUpdated: jest.fn(),
+            notifyWatchers: jest.fn(),
+          },
+        },
+        {
+          provide: IssueWatchersService,
+          useValue: {
+            watch: jest.fn(),
+          },
+        },
         {
           provide: getRepositoryToken(IssueEntity),
           useValue: issuesRepo,

@@ -1,12 +1,9 @@
+import { of } from 'rxjs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
-
+import { UsersFacade, CommentsFacade } from '@bugflow-2026/data-access';
+import { SocketService } from 'realtime/src/lib/socket.service';
 import { CommentsComponent } from './comments';
-import {
-  UsersFacade,
-  CommentsFacade,
-} from '@bugflow-2026/data-access';
 
 describe('CommentsComponent', () => {
   let component: CommentsComponent;
@@ -35,6 +32,21 @@ describe('CommentsComponent', () => {
             createComment: jest.fn(() => of({})),
             updateComment: jest.fn(() => of({})),
             deleteComment: jest.fn(() => of({})),
+          },
+        },
+        {
+          provide: SocketService,
+          useValue: {
+            connect: jest.fn(),
+            disconnect: jest.fn(),
+            joinIssue: jest.fn(),
+            leaveIssue: jest.fn(),
+            onCommentCreated: jest.fn(),
+            onCommentUpdated: jest.fn(),
+            onCommentDeleted: jest.fn(),
+            offCommentCreated: jest.fn(),
+            offCommentUpdated: jest.fn(),
+            offCommentDeleted: jest.fn(),
           },
         },
       ],
