@@ -10,7 +10,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   const allowedOrigins = [
     'http://localhost:4200',
-  ].filter(Boolean);
+  ];
 
   if (process.env.FRONTEND_URL) {
     allowedOrigins.push(process.env.FRONTEND_URL);

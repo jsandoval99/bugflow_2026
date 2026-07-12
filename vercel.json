@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:web",
+  "buildCommand": "npx nx build web --configuration=${NX_CONFIGURATION:-production}",
   "outputDirectory": "dist/web",
   "framework": null,
   "rewrites": [

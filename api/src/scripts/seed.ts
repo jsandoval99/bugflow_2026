@@ -333,7 +333,6 @@ async function bootstrap() {
       );
     }
 
-    console.log('📊 Seed summary');
     const summary = {
       users: await usersRepository.count(),
       projects: await projectsRepository.count(),
@@ -343,7 +342,7 @@ async function bootstrap() {
 
     console.log(`
     ========================================
-    🌱 BugFlow Seed Summary
+    🌱 BugFlow Seed Summary 📊
     ========================================
     👤 Users:      ${summary.users}
     📁 Projects:   ${summary.projects}
