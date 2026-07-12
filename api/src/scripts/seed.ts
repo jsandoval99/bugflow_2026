@@ -334,12 +334,23 @@ async function bootstrap() {
     }
 
     console.log('📊 Seed summary');
-    console.table({
+    const summary = {
       users: await usersRepository.count(),
       projects: await projectsRepository.count(),
       issues: await issuesRepository.count(),
       comments: await commentsRepository.count(),
-    });
+    };
+
+    console.log(`
+    ========================================
+    🌱 BugFlow Seed Summary
+    ========================================
+    👤 Users:      ${summary.users}
+    📁 Projects:   ${summary.projects}
+    🎫 Issues:     ${summary.issues}
+    💬 Comments:   ${summary.comments}
+    ========================================
+    `);
 
     console.log(
       '✅ BugFlow seed completed successfully',
