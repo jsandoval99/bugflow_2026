@@ -15,7 +15,7 @@ const isProduction = process.env.NODE_ENV === 'production';
         ? { rejectUnauthorized: false }
         : false,
       autoLoadEntities: true,
-      synchronize: process.env.DB_SYNCHRONIZE === 'true',
+      synchronize: true,
     })
   ],
 })
