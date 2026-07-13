@@ -19,6 +19,19 @@ export const AI_TOOLS = [
     },
   },
   {
+    name: 'find_users',
+    description: 'Search users by name or email. Useful when the user mentions a person instead of a database id.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Partial name or email' },
+        role: { type: 'string', enum: ['admin', 'developer', 'tester'] },
+        limit: { type: 'number' },
+      },
+      required: ['query'],
+    },
+  },
+  {
     name: 'list_issues',
     description: 'Returns a list (max 50) of issues with their main fields, applying filters. Use it when the user asks to see concrete examples, not just a number.',
     input_schema: {

@@ -23,6 +23,8 @@ export class AiToolExecutorService {
         return this.tools.getAverageResolutionTime(input);
       case 'generate_chart_data':
         return this.tools.generateChartData(input);
+      case 'find_users':
+        return this.tools.searchUsers(input);
       default:
         return { error: `Unknown tool: ${name}` };
     }

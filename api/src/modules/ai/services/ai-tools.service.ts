@@ -5,7 +5,9 @@ import { Repository, SelectQueryBuilder, In } from 'typeorm';
 import { IssueEntity } from '../../issues/entities/issue.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
 import { ProjectEntity } from '../../projects/entities/project.entity';
+import { User } from '../../users/entities/user.entity';
 import { IssueQueryFilters, ResolutionTimeFilters } from '../interfaces/issue-filters.interface';
+import { SearchUsersDto } from '../../users/dto/search-users.dto';
 
 @Injectable()
 export class AiToolsService {
@@ -16,6 +18,8 @@ export class AiToolsService {
     private readonly commentsRepo: Repository<CommentEntity>,
     @InjectRepository(ProjectEntity)
     private readonly projectsRepo: Repository<ProjectEntity>,
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
   ) {}
 
   private applyFilters(
@@ -161,6 +165,40 @@ export class AiToolsService {
       .groupBy('issue.status');
     const rows = await qb.getRawMany<{ status: string; count: string }>();
     return rows.map(r => ({ status: r.status, count: Number(r.count) }));
+  }
+
+  // ---- Tool: find_users ----
+  async searchUsers(filters: SearchUsersDto) {
+    const qb = this.usersRepo.createQueryBuilder('user');
+
+    qb.where(
+      '(user.name ILIKE :query OR user.email ILIKE :query)',
+      { query: `%${filters.query}%` },
+    );
+
+    if (filters.role) {
+      qb.andWhere('user.role = :role', { role: filters.role });
+    }
+
+    // if (filters.projectId) {
+    //   qb.innerJoin(
+    //     'user.projects',
+    //     'project',
+    //     'project.id = :projectId',
+    //     { projectId: filters.projectId },
+    //   );
+    // }
+
+    qb.take(filters.limit ?? 10);
+
+    const users = await qb.getMany();
+
+    return users.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }));
   }
 
   // ---- Tool: get_comment_activity ----

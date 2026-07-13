@@ -5,6 +5,7 @@ import { In, Repository } from 'typeorm';
 import { UserRole } from '@bugflow-2026/shared-types';
 import { Auth0Service } from '../auth/auth0.service';
 import { RequestUser } from '../../interfaces/auth/request-user.interface';
+import { SearchUsersDto } from './dto/search-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,6 +56,41 @@ export class UsersService {
   async updateRole(id: string, role: UserRole) {
     await this.repo.update(id, { role });
     return await this.repo.findOne({ where: { id } });
+  }
+
+  async searchUsers(filters: SearchUsersDto) {
+    const qb = this.repo.createQueryBuilder('user');
+
+    qb.where(
+      '(user.name ILIKE :query OR user.email ILIKE :query)',
+      { query: `%${filters.query}%`, },
+    );
+
+    if (filters.role) {
+      qb.andWhere('user.role = :role', {
+        role: filters.role,
+      });
+    }
+
+    // if (filters.projectId) {
+    //   qb.innerJoin(
+    //     'user.projects',
+    //     'project',
+    //     'project.id = :projectId',
+    //     { projectId: filters.projectId },
+    //   );
+    // }
+
+    qb.take(filters.limit ?? 10);
+
+    const users = await qb.getMany();
+
+    return users.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }));
   }
 
   async findAssignableUsers() {
