@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IssueStatus, IssuePriority, formatLabel, ChartPayload } from '@bugflow-2026/shared-types';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, In } from 'typeorm';
 import { IssueEntity } from '../../issues/entities/issue.entity';
 import { CommentEntity } from '../../comments/entities/comment.entity';
+import { ProjectEntity } from '../../projects/entities/project.entity';
 import { IssueQueryFilters, ResolutionTimeFilters } from '../interfaces/issue-filters.interface';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class AiToolsService {
     private readonly issuesRepo: Repository<IssueEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentsRepo: Repository<CommentEntity>,
+    @InjectRepository(ProjectEntity)
+    private readonly projectsRepo: Repository<ProjectEntity>,
   ) {}
 
   private applyFilters(
@@ -79,6 +82,30 @@ export class AiToolsService {
       updatedAt: issue.updatedAt.toISOString(),
       statusChangedAt: issue.statusChangedAt?.toISOString() ?? null,
     };
+  }
+
+  private async resolveLabels(
+    groupBy: 'status' | 'priority' | 'projectId',
+    grouped: { group: string; count: number }[],
+  ): Promise<string[]> {
+    if (groupBy !== 'projectId') {
+      return grouped.map(g => formatLabel(g.group));
+    }
+
+    const projectIds = grouped
+      .map(g => g.group)
+      .filter((id): id is string => !!id && id !== 'No project');
+
+    if (!projectIds.length) {
+      return grouped.map(() => 'No project');
+    }
+
+    const projects = await this.projectsRepo.find({
+      where: { id: In(projectIds) },
+    });
+    const namesById = new Map(projects.map(p => [p.id, p.name]));
+
+    return grouped.map(g => namesById.get(g.group) ?? 'No project');
   }
 
   // ---- Tool: count_issues ----
@@ -195,9 +222,7 @@ export class AiToolsService {
       projectId: input.projectId,
     });
 
-    const labels = grouped.map(g =>
-      input.groupBy === 'projectId' ? g.group : formatLabel(g.group),
-    );
+    const labels = await this.resolveLabels(input.groupBy, grouped);
 
     return {
       chartType: input.chartType,

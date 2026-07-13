@@ -84,9 +84,11 @@
             {{ msg.content }}
           </div>
 
-          @if (msg.chart) {
-            <div class="max-w-[85%]">
-              <app-chart-message [chart]="msg.chart" />
+          @if (msg.charts?.length) {
+            <div class="max-w-[85%] space-y-2">
+              @for (chart of msg.charts; track $index) {
+                <app-chart-message [chart]="chart" />
+              }
             </div>
           }
         }

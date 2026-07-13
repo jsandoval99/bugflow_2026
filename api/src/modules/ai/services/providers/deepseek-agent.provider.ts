@@ -13,7 +13,7 @@ export class DeepseekAgentProvider implements AiChatProvider {
 
   constructor(private readonly toolExecutor: AiToolExecutorService) {}
 
-  async ask(message: string, history: AiHistoryMessage[] = []): Promise<{ answer: string; chart?: ChartPayload }> {
+  async ask(message: string, history: AiHistoryMessage[] = []): Promise<{ answer: string; charts?: ChartPayload[] }> {
     if (!this.apiKey) {
       throw new AiProviderError('DeepSeek API key is not configured');
     }
@@ -25,7 +25,7 @@ export class DeepseekAgentProvider implements AiChatProvider {
       { role: 'user', content: message },
     ];
     let finalText = '';
-    let chartPayload: ChartPayload | undefined;
+    const chartPayloads: ChartPayload[] = [];
 
     try {
       for (let i = 0; i < MAX_ITERATIONS; i++) {
@@ -62,7 +62,7 @@ export class DeepseekAgentProvider implements AiChatProvider {
           toolCalls.map(async (call: any) => {
             const result = await this.toolExecutor.execute(call.function.name, JSON.parse(call.function.arguments || '{}'));
             if (call.function.name === 'generate_chart_data') {
-              chartPayload = result as ChartPayload;
+              chartPayloads.push(result as ChartPayload);
             }
             return {
               role: 'tool',
@@ -81,7 +81,7 @@ export class DeepseekAgentProvider implements AiChatProvider {
 
     return {
       answer: finalText || "I couldn't generate a response with the available information.",
-      chart: chartPayload,
+      charts: chartPayloads.length ? chartPayloads : undefined,
     };
   }
 }

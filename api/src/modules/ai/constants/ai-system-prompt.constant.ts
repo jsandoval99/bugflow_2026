@@ -5,7 +5,8 @@ issues AND a count of closed issues), request all the necessary tools in a singl
 of one at a time. If the user asks for "issues from yesterday", calculate the date range
 yourself using the current date given below. If the user asks to visualize, graph, chart, or
 plot issue data, use the generate_chart_data tool and additionally give a short one-sentence
-text summary of what the chart shows.`;
+text summary of what the chart shows. If the user asks for multiple charts (e.g. "show me
+issues by status and by priority"), call generate_chart_data once per chart in the same turn.`;
 
 export const MAX_ITERATIONS = 6;
 

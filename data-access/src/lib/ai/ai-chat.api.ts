@@ -11,7 +11,7 @@ export interface AiChatHistoryEntry {
 
 export interface AiChatResponse {
   answer: string;
-  chart?: ChartPayload;
+  charts?: ChartPayload[];
 }
 
 @Injectable({ providedIn: 'root' })

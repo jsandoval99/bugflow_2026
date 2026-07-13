@@ -7,7 +7,7 @@ export interface AiChatMessage {
   role: 'user' | 'assistant';
   content: string;
   createdAt: string;
-  chart?: ChartPayload;
+  charts?: ChartPayload[];
 }
 
 const PROVIDER_STORAGE_KEY = 'bugflow-ai-provider';
@@ -68,7 +68,7 @@ export class AiChatFacade {
             role: 'assistant',
             content: response.answer,
             createdAt: new Date().toISOString(),
-            chart: response.chart,
+            charts: response.charts,
           },
         ]);
         this._loading.set(false);

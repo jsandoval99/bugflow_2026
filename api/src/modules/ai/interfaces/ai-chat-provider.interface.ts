@@ -6,5 +6,5 @@ export interface AiHistoryMessage {
 }
 
 export interface AiChatProvider {
-  ask(message: string, history: AiHistoryMessage[]): Promise<{ answer: string; chart?: ChartPayload }>;
+  ask(message: string, history: AiHistoryMessage[]): Promise<{ answer: string; charts?: ChartPayload[] }>;
 }

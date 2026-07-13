@@ -14,14 +14,14 @@ export class AnthropicAgentProvider implements AiChatProvider {
 
   constructor(private readonly toolExecutor: AiToolExecutorService) {}
 
-  async ask(message: string, history: AiHistoryMessage[] = []): Promise<{ answer: string; chart?: ChartPayload }> {
+  async ask(message: string, history: AiHistoryMessage[] = []): Promise<{ answer: string; charts?: ChartPayload[] }> {
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new AiProviderError('Anthropic API key is not configured');
     }
 
     const messages: any[] = [...history, { role: 'user', content: message }];
     let finalText = '';
-    let chartPayload: ChartPayload | undefined;
+    const chartPayloads: ChartPayload[] = [];
 
     try {
       for (let i = 0; i < MAX_ITERATIONS; i++) {
@@ -63,7 +63,7 @@ export class AnthropicAgentProvider implements AiChatProvider {
           toolUseBlocks.map(async (block: any) => {
             const result = await this.toolExecutor.execute(block.name, block.input);
             if (block.name === 'generate_chart_data') {
-              chartPayload = result as ChartPayload;
+              chartPayloads.push(result as ChartPayload);
             }
             return {
               type: 'tool_result',
@@ -82,7 +82,7 @@ export class AnthropicAgentProvider implements AiChatProvider {
 
     return {
       answer: finalText || "I couldn't generate a response with the available information.",
-      chart: chartPayload,
+      charts: chartPayloads.length ? chartPayloads : undefined,
     };
   }
 }

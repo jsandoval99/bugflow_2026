@@ -19,7 +19,7 @@ export class AiAgentService {
     message: string,
     history: AiHistoryMessage[] = [],
     provider: AiProvider = AiProvider.ANTHROPIC,
-  ): Promise<{ answer: string; chart?: ChartPayload }> {
+  ): Promise<{ answer: string; charts?: ChartPayload[] }> {
     const trimmedHistory = history.slice(-MAX_HISTORY_MESSAGES);
     const agent = provider === AiProvider.DEEPSEEK ? this.deepseekProvider : this.anthropicProvider;
 
