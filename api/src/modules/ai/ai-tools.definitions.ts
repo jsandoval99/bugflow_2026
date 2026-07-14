@@ -66,11 +66,11 @@ export const AI_TOOLS = [
   },
   {
     name: 'group_issues_by',
-    description: 'Groups issues by status, priority, or projectId and returns counts. Useful for summaries.',
+    description: 'Groups issues by status, priority, projectId, or assignee and returns counts. Useful for summaries.',
     input_schema: {
       type: 'object',
       properties: {
-        field: { type: 'string', enum: ['status', 'priority', 'projectId'] },
+        field: { type: 'string', enum: ['status', 'priority', 'projectId', 'assigneeDbId'] },
         projectId: { type: 'string' },
         status: { type: 'array', items: { type: 'string', enum: ['open', 'in-progress', 'in-test', 'closed'] } },
       },
@@ -114,12 +114,12 @@ export const AI_TOOLS = [
   },
   {
     name: 'generate_chart_data',
-    description: 'Generates aggregated issue data formatted for rendering a bar, pie, or line chart. Use when the user asks to "see", "visualize", "graph", "plot" or "chart" issue data (e.g. "show me a pie chart of issues by status").',
+    description: 'Generates aggregated issue data formatted for rendering a bar, pie, or line chart. Use when the user asks to "see", "visualize", "graph", "plot" or "chart" issue data — including breakdowns by assignee/user (e.g. "show me a pie chart of issues by assignee").',
     input_schema: {
       type: 'object',
       properties: {
         chartType: { type: 'string', enum: ['bar', 'pie', 'line'] },
-        groupBy: { type: 'string', enum: ['status', 'priority', 'projectId'] },
+        groupBy: { type: 'string', enum: ['status', 'priority', 'projectId', 'assigneeDbId'] },
         status: { type: 'array', items: { type: 'string', enum: ['open', 'in-progress', 'in-test', 'closed'] } },
         priority: { type: 'array', items: { type: 'string', enum: ['low', 'medium', 'high'] } },
         projectId: { type: 'string' },

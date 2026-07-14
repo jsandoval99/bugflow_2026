@@ -89,27 +89,38 @@ export class AiToolsService {
   }
 
   private async resolveLabels(
-    groupBy: 'status' | 'priority' | 'projectId',
+    groupBy: 'status' | 'priority' | 'projectId' | 'assigneeDbId',
     grouped: { group: string; count: number }[],
   ): Promise<string[]> {
-    if (groupBy !== 'projectId') {
-      return grouped.map(g => formatLabel(g.group));
+    if (groupBy === 'projectId') {
+      const projectIds = grouped
+        .map(g => g.group)
+        .filter((id): id is string => !!id && id !== 'No project');
+
+      if (!projectIds.length) {
+        return grouped.map(() => 'No project');
+      }
+
+      const projects = await this.projectsRepo.find({ where: { id: In(projectIds) } });
+      const namesById = new Map(projects.map(p => [p.id, p.name]));
+      return grouped.map(g => namesById.get(g.group) ?? 'No project');
     }
 
-    const projectIds = grouped
-      .map(g => g.group)
-      .filter((id): id is string => !!id && id !== 'No project');
+    if (groupBy === 'assigneeDbId') {
+      const userIds = grouped
+        .map(g => g.group)
+        .filter((id): id is string => !!id && id !== 'Unassigned');
 
-    if (!projectIds.length) {
-      return grouped.map(() => 'No project');
+      if (!userIds.length) {
+        return grouped.map(() => 'Unassigned');
+      }
+
+      const users = await this.usersRepo.find({ where: { id: In(userIds) } });
+      const namesById = new Map(users.map(u => [u.id, u.name || u.email]));
+      return grouped.map(g => namesById.get(g.group) ?? 'Unassigned');
     }
 
-    const projects = await this.projectsRepo.find({
-      where: { id: In(projectIds) },
-    });
-    const namesById = new Map(projects.map(p => [p.id, p.name]));
-
-    return grouped.map(g => namesById.get(g.group) ?? 'No project');
+    return grouped.map(g => formatLabel(g.group));
   }
 
   // ---- Tool: count_issues ----
@@ -147,12 +158,19 @@ export class AiToolsService {
   }
 
   // ---- Tool: group_issues_by ----
-  async groupIssuesBy(field: 'status' | 'priority' | 'projectId', filters: IssueQueryFilters = {}) {
+  async groupIssuesBy(
+    field: 'status' | 'priority' | 'projectId' | 'assigneeDbId',
+    filters: IssueQueryFilters = {},
+  ) {
     const qb = this.issuesRepo.createQueryBuilder('issue');
     this.applyFilters(qb, filters);
-    qb.select(`issue.${field}`, 'group').addSelect('COUNT(*)', 'count').groupBy(`issue.${field}`);
+
+    const groupExpr = field === 'assigneeDbId' ? `issue.assignee ->> 'dbId'` : `issue.${field}`;
+    const fallback = field === 'assigneeDbId' ? 'Unassigned' : 'No project';
+
+    qb.select(groupExpr, 'group').addSelect('COUNT(*)', 'count').groupBy(groupExpr);
     const rows = await qb.getRawMany<{ group: string; count: string }>();
-    return rows.map(r => ({ group: r.group ?? 'No project', count: Number(r.count) }));
+    return rows.map(r => ({ group: r.group ?? fallback, count: Number(r.count) }));
   }
 
   // ---- Tool: get_user_workload ----
@@ -249,7 +267,7 @@ export class AiToolsService {
   // ---- Tool: generate_chart_data ----
   async generateChartData(input: {
     chartType: 'bar' | 'pie' | 'line';
-    groupBy: 'status' | 'priority' | 'projectId';
+    groupBy: 'status' | 'priority' | 'projectId' | 'assigneeDbId';
     status?: IssueStatus[];
     priority?: IssuePriority[];
     projectId?: string;
@@ -261,10 +279,14 @@ export class AiToolsService {
     });
 
     const labels = await this.resolveLabels(input.groupBy, grouped);
+    const titleSubject =
+      input.groupBy === 'projectId' ? 'project'
+      : input.groupBy === 'assigneeDbId' ? 'assignee'
+      : input.groupBy;
 
     return {
       chartType: input.chartType,
-      title: `Issues by ${formatLabel(input.groupBy === 'projectId' ? 'project' : input.groupBy)}`,
+      title: `Issues by ${formatLabel(titleSubject)}`,
       labels,
       datasets: [{ label: 'Issues', data: grouped.map(g => g.count) }],
     };
