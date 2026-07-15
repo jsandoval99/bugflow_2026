@@ -140,6 +140,13 @@ async function bootstrap() {
     const commentsRepository =
       dataSource.getRepository(CommentEntity);
 
+    console.log('🧹 Clearing previous issues (comments, watchers, and notifications cascade automatically)...');
+    await issuesRepository
+      .createQueryBuilder()
+      .delete()
+      .from(IssueEntity)
+      .execute();
+
     const admin =
       await findOrCreateUser(
         usersRepository,
