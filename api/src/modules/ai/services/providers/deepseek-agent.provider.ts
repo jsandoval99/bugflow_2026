@@ -40,6 +40,8 @@ export class DeepseekAgentProvider implements AiChatProvider {
             max_tokens: MAX_TOKENS,
             messages,
             tools: toOpenAiTools(AI_TOOLS),
+            tool_choice: i === 0 ? 'required' : 'auto',
+            temperature: 0
           }),
         });
 

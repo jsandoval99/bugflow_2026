@@ -33,7 +33,7 @@ export const AI_TOOLS = [
   },
   {
     name: 'list_issues',
-    description: 'Returns a list (max 50) of issues with their main fields, applying filters. Use it when the user asks to see concrete examples, not just a number.',
+    description: 'Returns a paginated list of issues (max 20 per page) with their main fields, applying filters. The response includes "meta" (with the true total count matching the filters, not just the page size) and "items". Use it when the user asks to see concrete examples, not just a number. If meta.hasMore is true and the user wants to see more, call this tool again with an incremented "page".',
     input_schema: {
       type: 'object',
       properties: {
@@ -45,7 +45,8 @@ export const AI_TOOLS = [
         createdAfter: { type: 'string' },
         createdBefore: { type: 'string' },
         search: { type: 'string' },
-        limit: { type: 'number' },
+        pageSize: { type: 'number', description: 'Max 20' },
+        page: { type: 'number', description: 'Page number, starting at 1' },
         sortBy: { type: 'string', enum: ['createdAt', 'updatedAt', 'statusChangedAt'] },
         sortOrder: { type: 'string', enum: ['ASC', 'DESC'] },
       },
@@ -53,13 +54,15 @@ export const AI_TOOLS = [
   },
   {
     name: 'get_stale_issues',
-    description: 'Returns issues whose status has not changed in more than N hours. Use it for "stale issues" or "issues with no movement".',
+    description: 'Returns a paginated list (max 20 per page) of issues whose status has not changed in more than N hours. Use it for "stale issues" or "issues with no movement". The response includes "meta" (with the true total count matching the filters) and "items". If meta.hasMore is true and the user wants to see more, call this tool again with an incremented "page".',
     input_schema: {
       type: 'object',
       properties: {
         hoursWithoutStatusChange: { type: 'number' },
         status: { type: 'array', items: { type: 'string', enum: ['open', 'in-progress', 'in-test', 'closed'] } },
         projectId: { type: 'string' },
+        pageSize: { type: 'number', description: 'Max 20' },
+        page: { type: 'number', description: 'Page number, starting at 1' },
       },
       required: ['hoursWithoutStatusChange'],
     },

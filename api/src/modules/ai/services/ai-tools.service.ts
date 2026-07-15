@@ -134,27 +134,62 @@ export class AiToolsService {
   // ---- Tool: list_issues ----
   async listIssues(
     filters: IssueQueryFilters & {
-      limit?: number;
+      pageSize?: number;
+      page?: number;
       sortBy?: 'createdAt' | 'updatedAt' | 'statusChangedAt';
       sortOrder?: 'ASC' | 'DESC';
     },
   ) {
     const qb = this.issuesRepo.createQueryBuilder('issue');
     this.applyFilters(qb, filters);
-    const limit = Math.min(filters.limit ?? 20, 50);
-    qb.orderBy(`issue.${filters.sortBy ?? 'updatedAt'}`, filters.sortOrder ?? 'DESC').take(limit);
-    const issues = await qb.getMany();
-    return { total: issues.length, issues: issues.map(i => this.toSummary(i)) };
+    const pageSize = Math.min(filters.pageSize ?? 20, 20);
+    const page = Math.max(filters.page ?? 1, 1);
+
+    qb.orderBy(`issue.${filters.sortBy ?? 'updatedAt'}`, filters.sortOrder ?? 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+
+    const [issues, total] = await qb.getManyAndCount();
+
+    return {
+      meta: {
+        total,
+        returned: issues.length,
+        hasMore: page * pageSize < total,
+        page,
+        pageSize,
+      },
+      items: issues.map(i => this.toSummary(i)),
+    };
   }
 
   // ---- Tool: get_stale_issues ----
-  async getStaleIssues(hoursWithoutStatusChange: number, filters: IssueQueryFilters = {}) {
+  async getStaleIssues(
+    hoursWithoutStatusChange: number,
+    filters: IssueQueryFilters & { pageSize?: number; page?: number } = {},
+  ) {
     const threshold = new Date(Date.now() - hoursWithoutStatusChange * 3600 * 1000);
     const qb = this.issuesRepo.createQueryBuilder('issue');
     this.applyFilters(qb, { ...filters, statusChangedBefore: threshold.toISOString() });
-    qb.orderBy('issue.statusChangedAt', 'ASC').take(50);
-    const issues = await qb.getMany();
-    return { total: issues.length, issues: issues.map(i => this.toSummary(i)) };
+    const pageSize = Math.min(filters.pageSize ?? 20, 20);
+    const page = Math.max(filters.page ?? 1, 1);
+
+    qb.orderBy('issue.statusChangedAt', 'ASC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+
+    const [issues, total] = await qb.getManyAndCount();
+
+    return {
+      meta: {
+        total,
+        returned: issues.length,
+        hasMore: page * pageSize < total,
+        page,
+        pageSize,
+      },
+      items: issues.map(i => this.toSummary(i)),
+    };
   }
 
   // ---- Tool: group_issues_by ----

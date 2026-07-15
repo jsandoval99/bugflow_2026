@@ -81,7 +81,21 @@
             [class.bg-gray-100]="msg.role === 'assistant'"
             [class.text-gray-800]="msg.role === 'assistant'"
           >
-            {{ msg.content }}
+            @for (line of parseMessageLines(msg.content); track $index) {
+              <div [class.pl-3]="isListLine(line)">
+                @for (segment of line; track $index) {
+                  @if (segment.type === 'issue-link') {
+                    <button
+                      type="button"
+                      class="underline font-medium bg-transparent border-0 p-0 cursor-pointer"
+                      (click)="openIssue(segment.issueId!)"
+                    >{{ segment.text }}</button>
+                  } @else {
+                    <span>{{ segment.text.replace('- ', '') }}</span>
+                  }
+                }
+              </div>
+            }
           </div>
 
           @if (msg.charts?.length) {
