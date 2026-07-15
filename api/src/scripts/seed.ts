@@ -7,7 +7,7 @@ import { IssueEntity } from '../modules/issues/entities/issue.entity';
 import { CommentEntity } from '../modules/comments/entities/comment.entity';
 import { IssueWatcherEntity } from '../modules/issues/entities/issue-watcher.entity';
 import { NotificationEntity } from '../modules/notifications/entities/notification.entity';
-import { UserRole, IssuePriority, IssueStatus } from '@bugflow-2026/shared-types';
+import { UserRole, IssuePriority, IssueStatus, IssueAssignee } from '@bugflow-2026/shared-types';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -97,6 +97,27 @@ async function findOrCreateComment(
   );
 }
 
+// ---- Random data helpers (no external libs needed) ----
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+/**
+ * Picks a "random-ish" assignee among the assignable users (developer/tester),
+ * with a chance of leaving the issue unassigned. Admin is intentionally excluded
+ * since it's not one of the assignable roles per the app's business rules.
+ */
+function pickRandomAssignee(
+  assignableUsers: User[],
+  unassignedChance = 0.15,
+): IssueAssignee | undefined {
+  if (Math.random() < unassignedChance) {
+    return undefined;
+  }
+  const user = pickRandom(assignableUsers);
+  return { id: user.auth0Id, dbId: user.id, name: user.name };
+}
+
 async function bootstrap() {
   if (process.env.ENABLE_SEED !== 'true') {
     throw new Error('Seed execution disabled');
@@ -152,6 +173,9 @@ async function bootstrap() {
         },
       );
 
+    // Only developer/tester are assignable per the app's business rules
+    const assignableUsers = [developer1, tester1];
+
     const bugflowProject =
       await findOrCreateProject(
         projectsRepository,
@@ -185,6 +209,37 @@ async function bootstrap() {
         },
       );
 
+    const analyticsProject =
+      await findOrCreateProject(
+        projectsRepository,
+        {
+          name: 'Analytics Dashboard',
+          description:
+            'Internal reporting and analytics platform',
+          ownerId: admin.id,
+        },
+      );
+
+    const paymentsProject =
+      await findOrCreateProject(
+        projectsRepository,
+        {
+          name: 'Payment Gateway',
+          description:
+            'Payment processing and billing service',
+          ownerId: developer1.id,
+        },
+      );
+
+    const projects = [
+      bugflowProject,
+      mobileProject,
+      portalProject,
+      analyticsProject,
+      paymentsProject,
+    ];
+
+    // ---- 4 "hand-picked" issues, kept exactly as before since their comments depend on them ----
     const issue1 =
       await findOrCreateIssue(
         issuesRepository,
@@ -276,11 +331,9 @@ async function bootstrap() {
       developer1.id,
     );
 
-    const projects = [
-      bugflowProject,
-      mobileProject,
-      portalProject,
-    ];
+    // ---- Remaining issues, generated with varied combinations to avoid repetition ----
+    // 10 components x 10 problem types = 100 unique title combinations.
+    // We already used 4 issues above, so we generate 96 more for a total of 100.
     const priorities = [
       IssuePriority.LOW,
       IssuePriority.MEDIUM,
@@ -291,17 +344,41 @@ async function bootstrap() {
       IssueStatus.IN_PROGRESS,
       IssueStatus.CLOSED,
     ];
-    const issueTemplates = [
-      'Login page validation fails',
-      'Dashboard widget not rendering',
-      'Issue status not updating',
-      'Comment notification missing',
-      'Project owner not assigned',
-      'File upload exceeds limit',
-      'Search results duplicated',
-      'Mobile layout broken',
-      'Auth0 redirect incorrect',
-      'Pagination not working',
+    const components = [
+      'Login',
+      'Dashboard',
+      'Search',
+      'File upload',
+      'Payment checkout',
+      'Notification center',
+      'User profile',
+      'Project settings',
+      'Data export',
+      'Comment thread',
+    ];
+    const problemTypes = [
+      'fails on submit',
+      'is not responsive on mobile',
+      'shows incorrect data',
+      'crashes intermittently',
+      'is missing input validation',
+      'has broken styling',
+      'is slow to load',
+      'does not update in real-time',
+      'throws an unexpected error',
+      'ignores user permissions',
+    ];
+    const descriptionContexts = [
+      'Multiple users have reported this issue during regular usage.',
+      'This was discovered during QA regression testing.',
+      'Customer support flagged this as a recurring complaint.',
+      'Occurs intermittently under normal load conditions.',
+      'First noticed after the latest deployment.',
+      'Impacts both desktop and mobile experiences.',
+      'Steps to reproduce are inconsistent but occurrence is frequent.',
+      'Confirmed on multiple browsers and environments.',
+      'Was working correctly in the previous release.',
+      'Flagged as a blocker for the upcoming sprint.',
     ];
     const comments = [
       'Issue reproduced successfully.',
@@ -312,25 +389,37 @@ async function bootstrap() {
       'Verified and approved.',
     ];
 
-    for (let i = 1; i <= 100; i++) {
-      const template = issueTemplates[i % issueTemplates.length];
-      const issue = await findOrCreateIssue(
-        issuesRepository,
-        {
-          title: `${template} #${i}`,
-          description: `Mock issue generated for testing record ${i}.`,
-          status: statuses[i % statuses.length],
-          priority: priorities[i % priorities.length],
-          projectId: projects[i % projects.length].id,
-          assignee: { id: developer1.auth0Id, dbId: developer1.id, name: developer1.name }
-        },
-      );
-      await findOrCreateComment(
-        commentsRepository,
-        issue.id,
-        comments[i % comments.length],
-        tester1.id,
-      );
+    let generatedCount = 0;
+
+    for (const component of components) {
+      for (const problemType of problemTypes) {
+        if (generatedCount >= 96) break;
+
+        const project = pickRandom(projects);
+        const description = `${component} ${problemType}. ${pickRandom(descriptionContexts)}`;
+
+        const issue = await findOrCreateIssue(
+          issuesRepository,
+          {
+            title: `${component} ${problemType}`,
+            description,
+            status: pickRandom(statuses),
+            priority: pickRandom(priorities),
+            projectId: project.id,
+            assignee: pickRandomAssignee(assignableUsers),
+          },
+        );
+
+        await findOrCreateComment(
+          commentsRepository,
+          issue.id,
+          pickRandom(comments),
+          tester1.id,
+        );
+
+        generatedCount++;
+      }
+      if (generatedCount >= 96) break;
     }
 
     const summary = {
