@@ -349,6 +349,7 @@ async function bootstrap() {
     const statuses = [
       IssueStatus.OPEN,
       IssueStatus.IN_PROGRESS,
+      IssueStatus.IN_TEST,
       IssueStatus.CLOSED,
     ];
     const components = [
