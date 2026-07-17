@@ -51,6 +51,7 @@ testem.log
 *.pem
 *.key
 *.crt
+web-e2e/.auth
 
 # System Files
 .DS_Store

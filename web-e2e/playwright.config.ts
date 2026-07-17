@@ -1,8 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
+const authFile = '.auth/dev-user.json';
 
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './tests' }),
@@ -32,8 +37,23 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: [/auth\.setup\.ts/, /issues-authenticated/, /comments-authenticated/],
+    },
+    {
+      name: 'chromium-authenticated',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: authFile,
+      },
+      dependencies: ['setup'],
+      testMatch: [/issues-authenticated/, /comments-authenticated/],
     },
   ],
 });
