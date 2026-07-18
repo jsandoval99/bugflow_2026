@@ -10,8 +10,8 @@ test('authenticate as dev@bugflow.com', async ({ page }) => {
 
   if (!email || !password) {
     throw new Error(
-      'Faltan E2E_USER_EMAIL / E2E_USER_PASSWORD en el entorno. ' +
-      'Sin estas variables no se puede autenticar contra Auth0.',
+      'Missing E2E_USER_EMAIL / E2E_USER_PASSWORD environment variables. ' +
+      'Authentication with Auth0 cannot proceed without these variables.',
     );
   }
 

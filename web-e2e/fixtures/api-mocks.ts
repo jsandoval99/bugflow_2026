@@ -31,7 +31,6 @@ export const MOCK_ISSUE = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
-/** Mocks lo mínimo que la app pide al arrancar cualquier vista autenticada */
 export async function mockCoreEndpoints(page: Page) {
   await page.route('**/api/users/me', route => route.fulfill({ json: DEV_USER }));
   await page.route('**/api/users/assignable', route => route.fulfill({ json: [DEV_USER] }));

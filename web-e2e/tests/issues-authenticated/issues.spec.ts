@@ -13,8 +13,9 @@ test.describe('Issues (dev@bugflow.com)', () => {
     await issuesPage.goto();
     await issuesPage.expectLoaded();
 
-    await expect(page.getByText(MOCK_ISSUE.title)).toBeVisible();
-    await expect(page.getByText(MOCK_ISSUE.project.name)).toBeVisible();
+    const issueCard = page.getByRole('article', { name: MOCK_ISSUE.title, exact: true });
+    await expect(issueCard.getByText(MOCK_ISSUE.title)).toBeVisible();
+    await expect(issueCard.getByText(MOCK_ISSUE.project.name)).toBeVisible();
   });
 
   test('creates a new issue and shows a success toast', async ({ page }) => {

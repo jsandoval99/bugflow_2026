@@ -123,6 +123,7 @@ export class CommentsComponent implements OnDestroy {
         this.loading.set(false);
         this.form.reset();
         this.editingCommentId.set(null);
+        this.facade.refresh();
       },
       error: () => {
         this.loading.set(false);
