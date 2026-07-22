@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   reporter: process.env.CI
-    ? [['html', { open: 'never' }], ['github']]
+    ? [['list'], ['html', { open: 'never' }], ['github']]
     : [['html', { open: 'never' }]],
 
   fullyParallel: true,
