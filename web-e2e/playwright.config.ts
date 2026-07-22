@@ -20,8 +20,8 @@ export default defineConfig({
   },
 
   reporter: process.env.CI
-    ? [['list'], ['html', { open: 'never' }], ['github']]
-    : [['html', { open: 'never' }]],
+    ? [['list'], ['html', { open: 'never', outputFolder: 'dist/.playwright/web-e2e/playwright-report' }], ['github']]
+    : [['html', { open: 'never', outputFolder: 'dist/.playwright/web-e2e/playwright-report' }]],
 
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
