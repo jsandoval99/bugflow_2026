@@ -1,2 +1,51 @@
-<p>users works!</p>
-<button (click)="getMe()">Get Me</button>
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between mb-3">
+    <h1 class="text-2xl font-bold">Users</h1>
+  </div>
+
+  @let state = usersState();
+
+  @if (state.loading) {
+    <app-spinner></app-spinner>
+  }
+
+  @if (state.error) {
+    <p class="text-red-500 text-sm">{{ state.error }}</p>
+  }
+
+  @if (!state.loading && !state.error) {
+    <app-card class="overflow-x-auto p-0">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b bg-gray-50 text-gray-500">
+            <th class="py-3 px-4 font-medium">Name</th>
+            <th class="py-3 px-4 font-medium">Email</th>
+            <th class="py-3 px-4 font-medium">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of state.data; track user.id) {
+            <tr class="border-b last:border-0">
+              <td class="py-3 px-4 font-medium">{{ user.name }}</td>
+              <td class="py-3 px-4 text-gray-500">{{ user.email }}</td>
+              <td class="py-3 px-4">
+                <span
+                  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
+                  [class]="roleClasses(user.role)"
+                >
+                  {{ user.role }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="py-8 text-center text-gray-400">
+                No users to show.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </app-card>
+  }
+</div>

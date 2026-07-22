@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { MainLayout } from './layout/main-layout';
 import { authGuard } from './core/guards/auth/auth-guard';
+import { adminGuard } from './core/guards/admin/admin-guard';
 import { publicGuard } from './core/guards/public/public-guard';
 
 export const appRoutes: Route[] = [
@@ -22,6 +23,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'users',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./pages/users/users').then(m => m.UsersPage),
       },

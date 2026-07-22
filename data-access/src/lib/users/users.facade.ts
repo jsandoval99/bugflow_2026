@@ -16,6 +16,10 @@ export class UsersFacade {
     return this.http.get<User[]>(`${this.baseUrl}/assignable`);
   }
 
+  getAllUsers() {
+    return this.http.get<User[]>(this.baseUrl);
+  }
+
   getMe() {
     return this.http.get<User>(`${this.baseUrl}/me`);
   }

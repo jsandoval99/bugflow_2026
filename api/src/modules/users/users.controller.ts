@@ -1,13 +1,7 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Patch,
-  Param,
-  Body,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards, Patch, Param, Body, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { UsersService } from './users.service';
 import { UserRole } from '@bugflow-2026/shared-types';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -16,11 +10,12 @@ import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { SearchUsersDto } from './dto/search-users.dto';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
+  @Roles(UserRole.ADMIN)
   async findAll() {
     return await this.usersService.findAll();
   }
@@ -36,6 +31,7 @@ export class UsersController {
   }
 
   @Patch(':id/role')
+  @Roles(UserRole.ADMIN)
   async updateRole(
     @Param('id') id: string,
     @Body('role') role: UserRole
