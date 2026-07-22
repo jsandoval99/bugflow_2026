@@ -9,5 +9,6 @@ import { NgClass } from '@angular/common';
 })
 export class CardComponent {
   @Input() ariaLabel = '';
+  @Input() role = '';
   @Input() class = '';
 }

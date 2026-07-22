@@ -1,7 +1,7 @@
 <div
   class="bg-white rounded-xl shadow-sm border p-4 flex flex-col"
-  role="region"
-  [attr.aria-label]="ariaLabel"
+  [attr.role]="role || null"
+  [attr.aria-label]="ariaLabel || null"
   [ngClass]="class"
 >
   <ng-content></ng-content>

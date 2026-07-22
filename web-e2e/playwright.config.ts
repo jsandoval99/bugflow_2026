@@ -5,8 +5,8 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
+const isRemoteTarget = !!process.env['BASE_URL'];
 const authFile = '.auth/dev-user.json';
 
 export default defineConfig({
@@ -28,12 +28,18 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
 
-  webServer: {
-    command: 'npx nx run web:serve',
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.CI,
-    cwd: workspaceRoot,
+  expect: {
+    timeout: 10000,
   },
+
+  webServer: isRemoteTarget
+    ? undefined
+    : {
+        command: 'npx nx run web:serve',
+        url: 'http://localhost:4200',
+        reuseExistingServer: !process.env.CI,
+        cwd: workspaceRoot,
+      },
 
   projects: [
     {
@@ -44,7 +50,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: [/auth\.setup\.ts/, /issues-authenticated/, /comments-authenticated/],
+      testIgnore: [/auth\.setup\.ts/, /issues-authenticated/, /comments-authenticated/, /api-health/],
     },
     {
       name: 'chromium-authenticated',
@@ -53,7 +59,7 @@ export default defineConfig({
         storageState: authFile,
       },
       dependencies: ['setup'],
-      testMatch: [/issues-authenticated/, /comments-authenticated/],
+      testMatch: [/issues-authenticated/, /comments-authenticated/, /api-health/],
     },
   ],
 });

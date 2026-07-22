@@ -25,11 +25,9 @@
   <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
     @for (issue of state.data.data; track issue.id) {
       <app-card
-        ariaLabel="Issue item"
         role="article"
+        [ariaLabel]="'Issue ' + issue.title"
         class="h-full gap-5"
-        [attr.aria-label]="'Issue ' + issue.title"
-        [attr.aria-labelledby]="'issue-title-' + issue.id"
       >
         <div class="flex justify-between items-start gap-4">
           <div class="flex-1 min-w-0 space-y-2">

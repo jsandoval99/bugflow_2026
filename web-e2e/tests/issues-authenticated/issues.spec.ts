@@ -10,12 +10,17 @@ test.describe('Issues (dev@bugflow.com)', () => {
 
   test('renders the mocked issue with status, priority and project', async ({ page }) => {
     const issuesPage = new IssuesPage(page);
+    const issuesResponse = page.waitForResponse(
+      res => res.url().includes('/api/issues') && res.request().method() === 'GET',
+    );
+
     await issuesPage.goto();
     await issuesPage.expectLoaded();
-
-    const issueCard = page.getByRole('article', { name: MOCK_ISSUE.title, exact: true });
-    await expect(issueCard.getByText(MOCK_ISSUE.title)).toBeVisible();
+    await issuesResponse;
+    const issueCard = page.getByRole('article', { name: `Issue ${MOCK_ISSUE.title}` });
+    await expect(issueCard).toBeVisible();
     await expect(issueCard.getByText(MOCK_ISSUE.project.name)).toBeVisible();
+    await expect(issueCard.getByText(MOCK_ISSUE.priority, { exact: true })).toBeVisible();
   });
 
   test('creates a new issue and shows a success toast', async ({ page }) => {
