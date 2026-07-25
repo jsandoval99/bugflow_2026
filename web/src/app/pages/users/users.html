@@ -26,15 +26,40 @@
         <tbody>
           @for (user of state.data; track user.id) {
             <tr class="border-b last:border-0">
-              <td class="py-3 px-4 font-medium">{{ user.name }}</td>
+              <td class="py-3 px-4 font-medium">
+                {{ user.name }}
+                @if (isSelf(user)) {
+                  <span class="ml-2 text-xs text-gray-400">(you)</span>
+                }
+              </td>
               <td class="py-3 px-4 text-gray-500">{{ user.email }}</td>
               <td class="py-3 px-4">
-                <span
-                  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
-                  [class]="roleClasses(user.role)"
-                >
-                  {{ user.role }}
-                </span>
+                @if (editingUserId() === user.id) {
+                  <select
+                    class="rounded-lg border px-2 py-1 text-xs capitalize disabled:opacity-50"
+                    [disabled]="savingUserId() === user.id"
+                    [attr.aria-label]="'Change role for ' + user.name"
+                    (change)="changeRole(user, $any($event.target).value)"
+                    (keydown.escape)="cancelEdit()"
+                  >
+                    @for (option of roleOptions; track option.value) {
+                      <option [value]="option.value" [selected]="option.value === user.role">
+                        {{ option.label }}
+                      </option>
+                    }
+                  </select>
+                } @else {
+                  <button
+                    type="button"
+                    (click)="startEdit(user)"
+                    [disabled]="isSelf(user)"
+                    [attr.title]="isSelf(user) ? 'You cannot change your own role' : 'Click to change role'"
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize disabled:cursor-not-allowed disabled:opacity-60"
+                    [class]="roleClasses(user.role)"
+                  >
+                    {{ user.role }}
+                  </button>
+                }
               </td>
             </tr>
           } @empty {

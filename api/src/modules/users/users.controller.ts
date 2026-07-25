@@ -8,6 +8,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { RequestUser } from '../../interfaces/auth/request-user.interface';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { SearchUsersDto } from './dto/search-users.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,9 +35,9 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   async updateRole(
     @Param('id') id: string,
-    @Body('role') role: UserRole
+    @Body() dto: UpdateUserRoleDto,
   ) {
-    return await this.usersService.updateRole(id, role);
+    return await this.usersService.updateRole(id, dto.role);
   }
 
   @Get('search')

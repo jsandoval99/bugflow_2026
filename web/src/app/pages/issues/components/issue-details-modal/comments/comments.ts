@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommentsFacade, UsersFacade } from '@bugflow-2026/data-access';
 import { SocketService } from '@bugflow-2026/realtime';
 import { Comment } from '@bugflow-2026/shared-types';
+import { ConfirmDialogService } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.service';
 
 @Component({
   selector: 'app-comments',
@@ -14,6 +15,7 @@ export class CommentsComponent implements OnDestroy {
   private fb = inject(FormBuilder).nonNullable;
   private usersFacade = inject(UsersFacade);
   private socketService = inject(SocketService);
+  private confirmDialog = inject(ConfirmDialogService);
   readonly facade = inject(CommentsFacade);
 
   currentUser = this.usersFacade.me;
@@ -80,10 +82,15 @@ export class CommentsComponent implements OnDestroy {
     });
   }
 
-  deleteComment(commentId: string) {
-    if (!confirm('Delete this comment?')) {
-      return;
-    }
+  async deleteComment(commentId: string) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete comment',
+      message: 'Delete this comment?',
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!confirmed) return;
+
     this.facade
       .deleteComment(
         this.issueId(),

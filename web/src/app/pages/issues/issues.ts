@@ -10,6 +10,7 @@ import { CreateIssueModalComponent } from './components/create-issue-modal/creat
 import { ContextMenuComponent } from '../../shared/ui/context-menu/context-menu';
 import { IssueDetailsModalComponent } from './components/issue-details-modal/issue-details-modal';
 import { PaginationComponent } from '../../shared/ui/pagination/pagination';
+import { ConfirmDialogService } from '../../shared/ui/confirm-dialog/confirm-dialog.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -37,6 +38,7 @@ export class IssuesPage {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private usersFacade = inject(UsersFacade);
+  private confirmDialog = inject(ConfirmDialogService);
   private defaultPageSize = DEFAULT_PAGE_SIZE;
   private showIssue(issue: Issue) {
     this.detailsModal.open(issue);
@@ -122,16 +124,26 @@ export class IssuesPage {
     this.modal.open(issue);
   }
 
-  deleteIssue(issue: Issue) {
-    if (!confirm(`Delete "${issue.title}"?`)) return;
+  async deleteIssue(issue: Issue) {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Delete issue',
+      message: `Delete "${issue.title}"?`,
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!confirmed) return;
     // pending api connection
   }
 
-  assignToMe(issue: Issue) {
+  async assignToMe(issue: Issue) {
     const user = this.currentUser();
-
     if (!user) return;
-    if (!confirm(`Assign "${issue.title}" to you?`)) return;
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Assign issue',
+      message: `Assign "${issue.title}" to you?`,
+    });
+    if (!confirmed) return;
 
     this.facade
       .updateIssue(issue.id, { assignee: { id: user.auth0Id, name: user.name, dbId: user.id } })

@@ -5,6 +5,7 @@ import { CommentsComponent } from './comments';
 import { CommentsFacade, UsersFacade } from '@bugflow-2026/data-access';
 import { SocketService } from '@bugflow-2026/realtime';
 import { Comment, User } from '@bugflow-2026/shared-types';
+import { ConfirmDialogService } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.service';
 
 describe('CommentsComponent', () => {
   let component: CommentsComponent;
@@ -38,6 +39,10 @@ describe('CommentsComponent', () => {
     offCommentDeleted: jest.fn(),
   };
 
+  const confirmDialogService = {
+    confirm: jest.fn(),
+  };
+
   const comment: Comment = {
     id: 'comment-1',
     content: 'Original comment',
@@ -53,6 +58,7 @@ describe('CommentsComponent', () => {
     commentsFacade.createComment.mockReturnValue(of({}));
     commentsFacade.updateComment.mockReturnValue(of({}));
     commentsFacade.deleteComment.mockReturnValue(of({}));
+    confirmDialogService.confirm.mockResolvedValue(true);
 
     await TestBed.configureTestingModule({
       imports: [CommentsComponent],
@@ -60,6 +66,7 @@ describe('CommentsComponent', () => {
         { provide: UsersFacade, useValue: { me: meSignal } },
         { provide: CommentsFacade, useValue: commentsFacade },
         { provide: SocketService, useValue: socketService },
+        { provide: ConfirmDialogService, useValue: confirmDialogService },
       ],
     }).compileComponents();
 
@@ -151,19 +158,22 @@ describe('CommentsComponent', () => {
   });
 
   describe('deleteComment', () => {
-    it('does nothing when the confirm dialog is cancelled', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(false);
+    it('does nothing when the confirm dialog is cancelled', async () => {
+      confirmDialogService.confirm.mockResolvedValue(false);
 
-      component.deleteComment('comment-1');
+      await component.deleteComment('comment-1');
 
       expect(commentsFacade.deleteComment).not.toHaveBeenCalled();
     });
 
-    it('deletes the comment when confirmed', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+    it('deletes the comment when confirmed', async () => {
+      confirmDialogService.confirm.mockResolvedValue(true);
 
-      component.deleteComment('comment-1');
+      await component.deleteComment('comment-1');
 
+      expect(confirmDialogService.confirm).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Delete this comment?' }),
+      );
       expect(commentsFacade.deleteComment).toHaveBeenCalledWith('issue-1', 'comment-1');
     });
   });

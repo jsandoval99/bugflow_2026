@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationsFacade } from '@bugflow-2026/data-access';
+import { ConfirmDialogService } from '../../../shared/ui/confirm-dialog/confirm-dialog.service';
 
 @Component({
   selector: 'app-notifications-dropdown',
@@ -9,6 +10,7 @@ import { NotificationsFacade } from '@bugflow-2026/data-access';
 })
 export class NotificationsDropdown {
   private router = inject(Router);
+  private confirmDialog = inject(ConfirmDialogService);
   readonly facade = inject(NotificationsFacade);
 
   open = signal(false);
@@ -30,10 +32,15 @@ export class NotificationsDropdown {
     this.facade.markAllAsRead();
   }
 
-  clearNotifications() {
-    if (!confirm('Delete all notifications?')) {
-      return;
-    }
+  async clearNotifications() {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Clear notifications',
+      message: 'Delete all notifications?',
+      confirmLabel: 'Delete all',
+      danger: true,
+    });
+    if (!confirmed) return;
+
     this.facade.clearNotifications();
   }
 

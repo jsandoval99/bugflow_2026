@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
@@ -54,6 +54,13 @@ export class UsersService {
   }
 
   async updateRole(id: string, role: UserRole) {
+    const user = await this.repo.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.auth0Service.updateUserRole(user.auth0Id, role);
     await this.repo.update(id, { role });
     return await this.repo.findOne({ where: { id } });
   }

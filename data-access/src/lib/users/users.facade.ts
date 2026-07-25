@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { User } from '@bugflow-2026/shared-types';
+import { User, UserRole } from '@bugflow-2026/shared-types';
 import { API_CONFIG } from '../api-config.token';
 
 @Injectable({ providedIn: 'root' })
@@ -22,5 +22,9 @@ export class UsersFacade {
 
   getMe() {
     return this.http.get<User>(`${this.baseUrl}/me`);
+  }
+
+  updateRole(id: string, role: UserRole) {
+    return this.http.patch<User>(`${this.baseUrl}/${id}/role`, { role });
   }
 }
